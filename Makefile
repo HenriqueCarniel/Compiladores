@@ -1,4 +1,3 @@
-
 main: main.c
 	bison -d parser.y
 	flex scanner.l
