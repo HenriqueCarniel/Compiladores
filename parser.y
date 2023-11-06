@@ -27,29 +27,103 @@ void yyerror (char const *mensagem);
 
 %%
 
-/* 3 */
-programa: elementsList |
-elementsList: elementsList globalVariable | elementsList function | globalVariable | function
+// ======================== PROGRAMA ========================
+program: elements_list;
+program: ;
 
-/* 3.1 */
-globalVariable: type identifierList ';' 
-type: TK_PR_INT | TK_PR_FLOAT | TK_PR_BOOL
-identifierList: TK_IDENTIFICADOR | identifierList ',' TK_IDENTIFICADOR
+elements_list: elements_list global_variables;
+elements_list: elements_list functions;
+elements_list: global_variables;
+elements_list: functions;
 
-/* 3.2 */
-function: header body
-header: argument TK_OC_GE type '!' TK_IDENTIFICADOR
-body: commandBlock
-argument: '(' ')' | '(' parameterList ')'
-parameterList: parameterList ',' parameter | parameter
-parameter: type TK_IDENTIFICADOR
+// ======================== TIPOS ========================
+type: TK_PR_INT | TK_PR_FLOAT | TK_PR_BOOL;
 
-/* 3.3 */
-commandBlock: '{' '}' | '{' commandList '}'
-commandList: command ';' | commandList command ';'
+// ======================== LITERIAS ========================
+literal: TK_LIT_INT | TK_LIT_FLOAT | TK_LIT_FALSE | TK_LIT_TRUE;
 
-command: commandBlock | 
+// ======================== VARIÁVEIS GLOBAIS ========================
+global_variables: type identifiers_list ';';
+identifiers_list: TK_IDENTIFICADOR | identifiers_list ',' TK_IDENTIFICADOR;
 
+// ======================== FUNÇÕES ========================
+functions: header body;
+header: arguments TK_OC_GE type '!' TK_IDENTIFICADOR;
+body: command_block;
 
+// Lista de parâmetros
+arguments: '(' ')' | '(' parameters_list ')';
+parameters_list: parameters_list ',' parameter | parameter;
+parameter: type TK_IDENTIFICADOR;
+
+// ======================== BLOCO DE COMANDO ========================
+command_block: '{' '}' | '{' simple_command_list '}';
+simple_command_list: command | simple_command_list command;
+
+// ======================== COMANDOS ========================
+command: command_block ';';
+command: variable_declaration ';';
+command: attribution_command ';';
+command: function_call ';';
+command: return_command ';';
+command: flow_control_command ';';
+
+// Declaração de variável
+variable_declaration: type identifiers_list;
+
+// Atribuição
+attribution_command: TK_IDENTIFICADOR '=' expression;
+
+// Chamada de função
+function_call: TK_IDENTIFICADOR '(' ')' | TK_IDENTIFICADOR '(' expression_list ')';
+expression_list: expression | expression_list ',' expression;
+
+// Comando de retorno
+return_command: TK_PR_RETURN expression;
+
+// Comando de controle de fluxo
+flow_control_command: TK_PR_IF '(' expression ')' command_block; 
+flow_control_command: TK_PR_IF '(' expression ')' command_block TK_PR_ELSE command_block;
+flow_control_command: TK_PR_WHILE '(' expression ')' command_block;
+
+// ======================== EXPRESSÕES ========================
+expression: expression_grade_eight;
+
+expression_grade_eight: expression_grade_eight TK_OC_OR expression_grade_eight;
+expression_grade_eight: expression_grade_seven;
+
+expression_grade_seven: expression_grade_seven TK_OC_AND expression_grade_seven;
+expression_grade_seven: expression_grade_six;
+
+expression_grade_six: expression_grade_six TK_OC_EQ expression_grade_six;
+expression_grade_six: expression_grade_six TK_OC_NE expression_grade_six;
+expression_grade_six: expression_grade_five;
+
+expression_grade_five: expression_grade_five '<' expression_grade_five;
+expression_grade_five: expression_grade_five '>' expression_grade_five;
+expression_grade_five: expression_grade_five TK_OC_LE expression_grade_five;
+expression_grade_five: expression_grade_five TK_OC_GE expression_grade_five;
+expression_grade_five: expression_grade_four;
+
+expression_grade_four: expression_grade_four '+' expression_grade_four;
+expression_grade_four: expression_grade_four '-' expression_grade_four;
+expression_grade_four: expression_grade_three;
+
+expression_grade_three: expression_grade_three '*' expression_grade_three;
+expression_grade_three: expression_grade_three '/' expression_grade_three;
+expression_grade_three: expression_grade_three '%' expression_grade_three;
+expression_grade_three: expression_grade_two;
+
+expression_grade_two: minus_loop expression_grade_two;
+expression_grade_two: negation_loop expression_grade_two;
+expression_grade_two: expression_grade_one;
+
+minus_loop: minus_loop '-' | '-';
+negation_loop: negation_loop '!' | '!';
+
+expression_grade_one: TK_IDENTIFICADOR;
+expression_grade_one: literal;
+expression_grade_one: function_call;
+expression_grade_one: '(' expression ')';
 
 %%

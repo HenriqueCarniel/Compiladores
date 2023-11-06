@@ -1,7 +1,15 @@
-int
-int
-int
-int
-int
-float
-int
+int teste1, teste2, teste3;
+
+(float value1, bool b, int value2) >= bool! function
+{
+    if (b)
+    {
+        new_value = value1 * value2;
+    }
+    else
+    {
+        new_value = value1 / value2;
+    };
+
+    return new_value;
+}
