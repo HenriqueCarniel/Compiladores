@@ -1,4 +1,4 @@
-/* ======= AUTORIA =======
+/* ======= GRUPO A =======
 Henrique Carniel da Silva 
 Jose Henrique Lima Marques */
 
