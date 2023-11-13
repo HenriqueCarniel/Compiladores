@@ -1,3 +1,7 @@
+/* ======= AUTORIA =======
+Henrique Carniel da Silva 
+Jose Henrique Lima Marques */
+
 %{
     #include "parser.tab.h"
 %}

@@ -1,3 +1,7 @@
+/* ======= AUTORIA =======
+Henrique Carniel da Silva 
+Jose Henrique Lima Marques */
+
 %{
 int yylex(void);
 void yyerror (char const *mensagem);
