@@ -18,7 +18,7 @@ all: main scanner
 	gcc lex.yy.o main.o -o etapa2
 
 clean:
-	rm -f *.o etapa2 parser.output lex.yy.c
+	rm -f *.o etapa2 parser.output lex.yy.c parser.tab.*
 
 #all : main
 
