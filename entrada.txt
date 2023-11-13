@@ -11,5 +11,21 @@ int teste1, teste2, teste3;
         new_value = value1 / value2;
     };
 
+    b = b1 + b2 + (b3 * (b4 / b5));
+    int teste1;
+    
+    {};
+    {{{{};};};};
+
+    function(b1, b2, b3, b4);
+
+    while(b) {};
+    while(b==b) {{};};
+
+    b3 = function1() + function2();    
+
+
+    if (value2){ value1 = value2; };
+
     return new_value;
 }
