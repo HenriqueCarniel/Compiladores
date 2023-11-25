@@ -1,9 +1,12 @@
+#ifndef TREE_H
+#define TREE_H
+
 #include <stdio.h>
 #include "lexical_value.h"
 
 typedef struct Node
 {
-    LexicalValue LexicalValue;
+    LexicalValue lexicalValue;
     struct Node* parent;
     struct Node* brother;
     struct Node* child;
@@ -17,3 +20,5 @@ void removeNode(Node* node);
 void exporta(Node* node);
 void printHeader(Node* node);
 void printTree(Node* node);
+
+#endif

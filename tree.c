@@ -1,7 +1,4 @@
-#include <stdio.h>
-#include <stdlib.h>
 #include "tree.h"
-#include "lexical_value.h"
 
 Node* createNode(LexicalValue lexicalValue)
 {
@@ -22,7 +19,7 @@ Node* createNodeToFunctionCall(LexicalValue lexicalValue)
     char* start = "call ";
     char* newLabel = malloc(strlen(start) + strlen(node->lexicalValue.label) + 1);
 
-    strcpy(newLabel, prefix);
+    strcpy(newLabel, start);
     strcat(newLabel, node->lexicalValue.label);
 
     free(node->lexicalValue.label);
@@ -87,7 +84,7 @@ void exporta(Node* node)
 
 void printHeader(Node* node)
 {
-    print("%p [label=\"%s\"];\n", node, node->lexicalValue.label);
+    printf("%p [label=\"%s\"];\n", node, node->lexicalValue.label);
     if (node->child)
     {
         printHeader(node->child);

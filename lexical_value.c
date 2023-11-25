@@ -12,6 +12,6 @@ LexicalValue createLexicalValue(char* text, TokenType type, int lineNumber)
 
 void freeLexicalValue(LexicalValue lexicalValue)
 {
-    if (!lexicalValuer.label) return;
+    if (!lexicalValue.label) return;
     free(lexicalValue.label);
 }

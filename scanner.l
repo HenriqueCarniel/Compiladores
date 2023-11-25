@@ -3,8 +3,10 @@ Henrique Carniel da Silva
 Jose Henrique Lima Marques */
 
 %{
-    #include "parser.tab.h"
+    #include <stdio.h>
+    #include "tree.h"
     #include "lexical_value.h"
+    #include "parser.tab.h"
 
     #define YYSTYPE LexicalValue
 %}

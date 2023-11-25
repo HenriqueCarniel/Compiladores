@@ -582,7 +582,7 @@ expression_grade_one: '(' expression ')'
 
 %%
 
-void yyerror(cons char *message)
+void yyerror(const char *message)
 {
     printf("Erro sintático [%s] na linha %d\n", message, get_line_number());
     return;
