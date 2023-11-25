@@ -3,9 +3,27 @@ Henrique Carniel da Silva
 Jose Henrique Lima Marques */
 
 %{
+#include <stdio.h>
+#include "tree.h"
+#include "lexical_value.h"
+
 int yylex(void);
 void yyerror (char const *mensagem);
+int get_line_number();
+extern void *arvore;
 %}
+
+%code requires
+{
+    #include "tree.h"
+    #include "lexical_value.h"
+}
+
+%union
+{
+    LexicalValue LexicalValue;
+    struct Node* Node;
+}
 
 %define parse.error verbose
 
@@ -131,3 +149,9 @@ expression_grade_one: function_call;
 expression_grade_one: '(' expression ')';
 
 %%
+
+void yyerror(cons char *message)
+{
+    printf("Erro sintático [%s] na linha %d\n", message, get_line_number());
+    return;
+}
