@@ -91,14 +91,20 @@ elements_list: global_variables;
 elements_list: functions;
 
 // ======================== TIPOS ========================
-type: TK_PR_INT | TK_PR_FLOAT | TK_PR_BOOL;
+type: TK_PR_INT;
+type: TK_PR_FLOAT;
+type: TK_PR_BOOL;
 
 // ======================== LITERIAS ========================
-literal: TK_LIT_INT | TK_LIT_FLOAT | TK_LIT_FALSE | TK_LIT_TRUE;
+literal: TK_LIT_INT;
+literal: TK_LIT_FLOAT;
+literal: TK_LIT_FALSE;
+literal: TK_LIT_TRUE;
 
 // ======================== VARIÁVEIS GLOBAIS ========================
 global_variables: type identifiers_list ';';
-identifiers_list: TK_IDENTIFICADOR | identifiers_list ',' TK_IDENTIFICADOR;
+identifiers_list: TK_IDENTIFICADOR;
+identifiers_list: identifiers_list ',' TK_IDENTIFICADOR;
 
 // ======================== FUNÇÕES ========================
 functions: header body;
@@ -106,13 +112,17 @@ header: arguments TK_OC_GE type '!' TK_IDENTIFICADOR;
 body: command_block;
 
 // Lista de parâmetros
-arguments: '(' ')' | '(' parameters_list ')';
-parameters_list: parameters_list ',' parameter | parameter;
+arguments: '(' ')';
+arguments: '(' parameters_list ')';
+parameters_list: parameters_list ',' parameter;
+parameters_list: parameter;
 parameter: type TK_IDENTIFICADOR;
 
 // ======================== BLOCO DE COMANDO ========================
-command_block: '{' '}' | '{' simple_command_list '}';
-simple_command_list: command | simple_command_list command;
+command_block: '{' '}';
+command_block: '{' simple_command_list '}';
+simple_command_list: command;
+simple_command_list: simple_command_list command;
 
 // ======================== COMANDOS ========================
 command: command_block ';';
@@ -129,8 +139,10 @@ variable_declaration: type identifiers_list;
 attribution_command: TK_IDENTIFICADOR '=' expression;
 
 // Chamada de função
-function_call: TK_IDENTIFICADOR '(' ')' | TK_IDENTIFICADOR '(' expression_list ')';
-expression_list: expression | expression_list ',' expression;
+function_call: TK_IDENTIFICADOR '(' ')';
+function_call: TK_IDENTIFICADOR '(' expression_list ')';
+expression_list: expression;
+expression_list: expression_list ',' expression;
 
 // Comando de retorno
 return_command: TK_PR_RETURN expression;
