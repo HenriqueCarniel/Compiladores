@@ -14,5 +14,4 @@ void freeLexicalValue(LexicalValue lexicalValue)
 {
     if (!lexicalValuer.label) return;
     free(lexicalValue.label);
-    lexicalValue.label = NULL;
 }

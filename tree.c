@@ -75,7 +75,6 @@ void removeNode(Node* node)
     removeNode(node->brother);
 
     free(node);
-    node = NULL;
 }
 
 void exporta(Node* node)
