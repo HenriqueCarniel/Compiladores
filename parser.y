@@ -84,7 +84,7 @@ extern void *arvore;
 program: elements_list
 {
     $$ = $1;
-    arvore = $1;
+    arvore = $$;
 };
 
 program: 
@@ -95,25 +95,26 @@ program:
 
 
 
-elements_list: elements_list global_variables
+elements_list: functions elements_list
 {
     $$ = $1;
+    addChild($$, $2);
 };
 
-elements_list: elements_list functions
+elements_list: global_variables elements_list
 {
     $$ = $2;
-    addChild($$, $1);
-};
-
-elements_list: global_variables
-{
-    $$ = NULL;
 };
 
 elements_list: functions
 {
     $$ = $1;
+};
+
+
+elements_list: global_variables
+{
+    $$ = NULL;
 };
 
 
@@ -176,11 +177,11 @@ identifiers_list: TK_IDENTIFICADOR
     freeLexicalValue($1);
 };
 
-identifiers_list: identifiers_list ',' TK_IDENTIFICADOR
+identifiers_list: TK_IDENTIFICADOR ',' identifiers_list
 {
     $$ = NULL;
+    freeLexicalValue($1);
     freeLexicalValue($2);
-    freeLexicalValue($3);
 };
 
 
@@ -195,6 +196,7 @@ functions: header body
 header: arguments TK_OC_GE type '!' TK_IDENTIFICADOR
 {
     $$ = createNode($5);
+    freeLexicalValue($2);
     freeLexicalValue($4);
 };
 
@@ -220,17 +222,17 @@ arguments: '(' parameters_list ')'
     freeLexicalValue($3);
 };
 
-parameters_list: parameters_list ',' type TK_IDENTIFICADOR
-{
-    $$ = NULL;
-    freeLexicalValue($2);
-    freeLexicalValue($4);
-};
-
 parameters_list: type TK_IDENTIFICADOR
 {
     $$ = NULL;
     freeLexicalValue($2);
+};
+
+parameters_list: type TK_IDENTIFICADOR ',' parameters_list
+{
+    $$ = NULL;
+    freeLexicalValue($2);
+    freeLexicalValue($3);
 };
 
 
@@ -255,16 +257,16 @@ simple_command_list: command
     $$ = $1;
 };
 
-simple_command_list: simple_command_list command
+simple_command_list: command simple_command_list 
 {
-    if ($2)
+    if ($1)
     {
-        $$ = $2;
-        addChild($$, $1);
+        $$ = $1;
+        addChild($$, $2);
     }
     else
     {
-        $$ = $1;
+        $$ = $2;
     }
 };
 
@@ -309,7 +311,7 @@ command: flow_control_command ';'
 
 
 
-// Declaração de variável
+// Declaração de variável ///////////////////////////////// VER ESSE INDENTIFIERS LIST
 variable_declaration: type identifiers_list
 {
     $$ = $2;
@@ -348,10 +350,10 @@ expression_list: expression
     $$ = $1;
 };
 
-expression_list: expression_list ',' expression
+expression_list: expression ',' expression_list
 {
-    $$ = $3;
-    addChild($$, $1);
+    $$ = $1;
+    addChild($$, $3);
     freeLexicalValue($2);
 };
 
