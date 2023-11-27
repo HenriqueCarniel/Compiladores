@@ -1,0 +1,25 @@
+digraph {
+label="Ref";
+f -> at
+at -> z
+at -> div;
+div -> per
+div -> d
+per -> mult
+per -> c
+mult -> excl
+mult -> b
+excl -> a
+f [label = "f"];
+at [label = "="];
+z [label = "z"];
+a [label = "a"];
+b [label = "b"];
+c [label = "c"];
+d [label = "d"];
+div [label = "/"];
+per [label = "%"];
+mult [label = "*"];
+excl [label = "!"];
+
+}

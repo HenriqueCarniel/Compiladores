@@ -1,0 +1,39 @@
+digraph {
+label="Ref";
+fg -> ff
+ff -> callg
+callg -> priarg;
+priarg -> secarg;
+secarg -> triarg;
+fg [label="g"];
+ff [label="f"];
+callg [label="call g"];
+
+priarg [label="+"];
+priarg -> a1
+priarg -> b1
+a1 [label="a"];
+b1 [label="b"];
+
+secarg [label="+"];
+secarg -> a2
+secarg -> mult
+a2 [label="a"];
+mult -> b2
+mult -> c1
+b2 [label="b"];
+c1 [label="c"];
+mult [label="*"];
+
+triarg [label="+"];
+
+triarg -> a3
+triarg -> soma
+soma -> b3
+soma -> c2
+b3 [label="b"];
+c2 [label="c"];
+a3 [label="a"];
+soma [label="+"];
+
+}

@@ -1,0 +1,10 @@
+() >= int! f
+{
+  int a, b;
+  a = b;
+  int c, d;
+  int e;
+  c = d;
+  int g;
+  return a;
+}

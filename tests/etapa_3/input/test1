@@ -1,0 +1,6 @@
+(int x) >= int! funcao {
+    {a=1+1;};
+    {b=outra_funcao((1+1)-4/5, 1 + mais_uma_funcao(2, 2, 4, 5)); {if(1==1){a=1;b=2;}; {};};};
+    {{}; {}; {};};
+    return 1;
+}

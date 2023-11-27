@@ -1,8 +1,6 @@
 *.tab.*
 *.yy.*
 *.o
-saida
 etapa3
 output2dot.sh
-saida.dot
-saida.png
+.vscode
