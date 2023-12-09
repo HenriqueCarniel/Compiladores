@@ -1,10 +1,11 @@
 #include "tree.h"
 
-Node* createNode(LexicalValue lexicalValue)
+Node* createNode(LexicalValue lexicalValue, DataType dataType)
 {
     Node* node = malloc(sizeof(Node));
 
     node->lexicalValue = lexicalValue;
+    node->dataType = dataType;
     node->parent = NULL;
     node->brother = NULL;
     node->child = NULL;
@@ -12,9 +13,9 @@ Node* createNode(LexicalValue lexicalValue)
     return node;
 }
 
-Node* createNodeToFunctionCall(LexicalValue lexicalValue)
+Node* createNodeToFunctionCall(LexicalValue lexicalValue, DataType dataType)
 {
-    Node* node = createNode(lexicalValue);
+    Node* node = createNode(lexicalValue, dataType);
 
     char* start = "call ";
     char* newLabel = malloc(strlen(start) + strlen(node->lexicalValue.label) + 1);

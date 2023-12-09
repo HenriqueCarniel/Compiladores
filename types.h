@@ -8,7 +8,8 @@ typedef enum DataType
 {
     DATA_TYPE_INT,
     DATA_TYPE_FLOAT,
-    DATA_TYPE_BOOL
+    DATA_TYPE_BOOL,
+    DATA_TYPE_PLACEHOLDER
 } DataType;
 
 // ===============================
@@ -41,36 +42,79 @@ typedef struct Node
 } Node;
 
 // ===============================
-// SIMBOL TABLE
+// SYMBOL TABLE
 // ===============================
-typedef enum SymbolType
-{
-    SYMBOL_TYPE_LITERAL,
-    SYMBOL_TYPE_IDENTIFIER,
-    SYMBOL_TYPE_FUNCTION,
-    SYMBOL_TYPE_NON_EXISTENT
-} SymbolType;
 
-typedef struct SymbolTableValue
+/*
+
+    Natureza de um símbolo
+
+*/
+typedef enum SymbolNature
+{
+    SYMBOL_NATURE_LITERAL,
+    SYMBOL_NATURE_IDENTIFIER,
+    SYMBOL_NATURE_FUNCTION,
+    SYMBOL_NATURE_NON_EXISTENT
+} SymbolNature;
+
+/*
+
+    Valores associados a um símbolo na tabela
+
+*/
+typedef struct SymbolTableEntryValue
 {
     int lineNumber;
-    SymbolType symbolType;
+    SymbolNature symbolNature;
     DataType dataType;
     LexicalValue lexicalValue;
-} SymbolTableValue;
+} SymbolTableEntryValue;
+
+/*
+
+    Uma entrada numa tabela de símbolos
+    Lista encadeada
+
+*/
 
 typedef struct SymbolTableEntry
 {
     char* key;
-    SymbolTableValue value;
+    SymbolTableEntryValue value;
+    struct SymbolTableEntry* next;
 } SymbolTableEntry;
+
+/*
+
+    Um bucket da tabela de símbolos (contém todas entradas que mapeiam para um mesmo índice)
+
+*/
+
+typedef struct SymbolTableBucket
+{
+    SymbolTableEntry* entries;
+ }SymbolTableBucket;
+
+/*
+
+    Uma tabela de símbolo (um frame da stack)
+
+*/
+
+#define N_SYMBOL_TABLE_BUCKETS 32
 
 typedef struct SymbolTable
 {
-    int size;
-    int capacity;
-    SymbolTableEntry* entries;
+    int n_buckets;
+    SymbolTableBucket* buckets;
 } SymbolTable;
+
+/*
+
+    Um elemento da pilha de tabelas de símbolos
+
+*/
 
 typedef struct SymbolTableStack
 {

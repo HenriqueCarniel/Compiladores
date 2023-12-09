@@ -3,17 +3,10 @@
 
 #include <stdio.h>
 #include "lexical_value.h"
+#include "types.h"
 
-typedef struct Node
-{
-    LexicalValue lexicalValue;
-    struct Node* parent;
-    struct Node* brother;
-    struct Node* child;
-} Node;
-
-Node* createNode(LexicalValue lexicalValue);
-Node* createNodeToFunctionCall(LexicalValue lexicalValue);
+Node* createNode(LexicalValue lexicalValue, DataType dataType);
+Node* createNodeToFunctionCall(LexicalValue lexicalValue, DataType dataType);
 void addChild(Node* parent, Node* child);
 Node* getLastChild(Node* parent);
 void removeNode(Node* node);
