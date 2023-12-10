@@ -13,6 +13,9 @@ void initGlobalSymbolStack();
 
 void addTableToGlobalStack(SymbolTable* symbolTable);
 
+void popGlobalStack();
+
+void copySymbolsToGlobalStackBelow();
 
 /*
 
@@ -75,6 +78,8 @@ int isSameKey(SymbolTableEntry* entry, char* key);
 
 // Adiciona um símbolo a uma tabela de símbolos
 
+void addSymbolValueToTable(SymbolTable* table, SymbolTableEntryValue value);
+
 void addSymbolValueToGlobalTableStack(SymbolTableEntryValue value);
 
 // Verifica se a chave já existe em uma tabela dada
@@ -96,6 +101,6 @@ int isIdentifierDeclared(char* identifier);
 
 //////////////////////////////////////////////////////////////
 
-void printGlobalTableStack();
+void printGlobalTableStack(int depth);
 
 #endif

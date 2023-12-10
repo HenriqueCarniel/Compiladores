@@ -236,6 +236,9 @@ global_variables: type identifiers_list ';'
     $$ = NULL;
     removeNode($2);
     freeLexicalValue($3);
+    
+    // Não tem mais um tipo sendo declarado
+    declaredType = DATA_TYPE_UNDECLARED;
     };
 
 identifiers_list: TK_IDENTIFICADOR
@@ -278,13 +281,17 @@ functions: header body
 
 header: arguments TK_OC_GE type '!' TK_IDENTIFICADOR
 {
+    /* TO-DO: Copiar os argumentos para o novo escopo (?) */
+    // Cria contexto interno da função
+    //addTableToGlobalStack(createSymbolTable());
+
     $$ = createNode($5, DATA_TYPE_PLACEHOLDER);
     freeLexicalValue($2);
     freeLexicalValue($4);
 };
 
 body: command_block
-{
+{   
     $$ = $1;
 };
 
@@ -308,12 +315,31 @@ arguments: '(' parameters_list ')'
 parameters_list: type TK_IDENTIFICADOR
 {
     $$ = NULL;
+
+    // Adiciona identificador à tabela de tipos
+    SymbolTableEntryValue value = createSymbolTableEntryValue(
+        SYMBOL_NATURE_IDENTIFIER,
+        declaredType,
+        $2
+    );
+    addSymbolValueToGlobalTableStack(value);
+
+
     freeLexicalValue($2);
 };
 
 parameters_list: type TK_IDENTIFICADOR ',' parameters_list
 {
     $$ = NULL;
+
+    // Adiciona identificador à tabela de tipos
+    SymbolTableEntryValue value = createSymbolTableEntryValue(
+        SYMBOL_NATURE_IDENTIFIER,
+        declaredType,
+        $2
+    );
+    addSymbolValueToGlobalTableStack(value);
+
     freeLexicalValue($2);
     freeLexicalValue($3);
 };
@@ -321,18 +347,26 @@ parameters_list: type TK_IDENTIFICADOR ',' parameters_list
 
 
 // ======================== BLOCO DE COMANDO ========================
-command_block: '{' '}'
+command_block_begin: '{'
 {
-    $$ = NULL;
+    addTableToGlobalStack(createSymbolTable());
     freeLexicalValue($1);
-    freeLexicalValue($2);
 };
 
-command_block: '{' simple_command_list '}'
+command_block_end: '}'
+{
+    popGlobalStack();
+    freeLexicalValue($1);
+};
+
+command_block: command_block_begin command_block_end
+{
+    $$ = NULL;
+};
+
+command_block: command_block_begin simple_command_list command_block_end
 {
     $$ = $2;
-    freeLexicalValue($1);
-    freeLexicalValue($3);
 };
 
 simple_command_list: command

@@ -40,8 +40,45 @@ void addTableToGlobalStack(SymbolTable* symbolTable)
     SymbolTableStack* newStackFrame = createSymbolTableStack();
     // Novo frame aponta para o topo da pilha global
     newStackFrame->nextItem = globalSymbolTableStack;
+    newStackFrame->symbolTable = symbolTable;
     // O frame se torna o novo topo
     globalSymbolTableStack = newStackFrame;
+
+    printf("EMPILHANDO NOVO ESCOPO\n");
+    printf("======================\n");
+
+}
+
+void popGlobalStack()
+{
+    printf("DESEMPILHANDO NOVO ESCOPO\n");
+    printf("=========================\n");
+    printf("Frame desempilhado:\n");
+    printGlobalTableStack(1);
+    
+    freeSymbolTable(globalSymbolTableStack->symbolTable);
+    globalSymbolTableStack = globalSymbolTableStack->nextItem;
+
+}
+
+// Copia os valores 
+void copySymbolsToGlobalStackBelow()
+{
+    if(globalSymbolTableStack->nextItem == NULL){
+        printf("Erro: tentando copiar símbolos para tabela abaixo, mas tabela atual é a global\n");
+        exit(1);
+    }
+
+    int i;
+    for(i=0; i < N_SYMBOL_TABLE_BUCKETS; i++){
+        SymbolTableBucket* bucket = &globalSymbolTableStack->symbolTable->buckets[i];
+        SymbolTableEntry* last = bucket->entries;
+
+        while(last != NULL){
+            addSymbolValueToTable(globalSymbolTableStack->nextItem->symbolTable, last->value);
+            last = last->next;
+        }
+    }
 }
 
 
@@ -211,15 +248,18 @@ int isSameKey(SymbolTableEntry* entry, char* key)
 
 //////////////////////////////////////////////////////////////
 
-// Adiciona um símbolo a uma tabela de símbolos
 void addSymbolValueToGlobalTableStack(SymbolTableEntryValue value){
+    addSymbolValueToTable(globalSymbolTableStack->symbolTable, value);
+}
+
+// Adiciona um símbolo a uma tabela de símbolos
+void addSymbolValueToTable(SymbolTable* table, SymbolTableEntryValue value){
 
     // Se não for literal, checa se já foi declarado na tabela
     if (value.symbolNature != SYMBOL_NATURE_LITERAL){
         checkSymbolDeclared(value);
     }
     
-    SymbolTable* table = globalSymbolTableStack->symbolTable;
 
     ////////////////////////////
     // CÁLCULO DA CHAVE
@@ -304,25 +344,24 @@ void checkSymbolDeclared(SymbolTableEntryValue value){
 
 //////////////////////////////////////////////////////////////
 
-void printGlobalTableStack(){
+void printGlobalTableStack(int depth){
     SymbolTableStack* stackTop = globalSymbolTableStack;
     SymbolTable* table;
 
-    int i = 0;
+    int i = depth;
+    int j = 0;
+
     do{
-        printf("======================================\n");
-        printf("                FRAME %d\n", i);
-        printf("======================================\n");
+        printf("                FRAME %d\n", j);
+        j++;
         int bucket_idx;
         SymbolTableEntry* entry;
         table = stackTop->symbolTable;
         for(bucket_idx=0; bucket_idx < table->n_buckets; bucket_idx++){
             entry = table->buckets[bucket_idx].entries;
-            if(entry != NULL) printf("Bucket %d\n", bucket_idx);
             while(entry != NULL){
                 char* key = entry->key;
                 SymbolTableEntryValue value = entry->value;
-                printf("\t");
                 printf("Símbolo=%s ", key);
                 char* str_datatype;
                 switch(value.dataType){
@@ -345,9 +384,11 @@ void printGlobalTableStack(){
             }
         }
         stackTop = stackTop->nextItem;
+        i--;
 
+    }while((stackTop != NULL) && (i > 0));
 
-    }while(stackTop != NULL);
+    printf("\n\n");
 
 
 }
