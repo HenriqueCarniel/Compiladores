@@ -44,17 +44,17 @@ void addTableToGlobalStack(SymbolTable* symbolTable)
     // O frame se torna o novo topo
     globalSymbolTableStack = newStackFrame;
 
-    printf("EMPILHANDO NOVO ESCOPO\n");
-    printf("======================\n");
+    // printf("EMPILHANDO NOVO ESCOPO\n");
+    // printf("======================\n");
 
 }
 
 void popGlobalStack()
 {
-    printf("DESEMPILHANDO NOVO ESCOPO\n");
-    printf("=========================\n");
-    printf("Frame desempilhado:\n");
-    printGlobalTableStack(1);
+    // printf("DESEMPILHANDO NOVO ESCOPO\n");
+    // printf("=========================\n");
+    // printf("Frame desempilhado:\n");
+    // printGlobalTableStack(1);
     
     freeSymbolTable(globalSymbolTableStack->symbolTable);
     globalSymbolTableStack = globalSymbolTableStack->nextItem;
@@ -315,23 +315,25 @@ int isKeyInTable(SymbolTable* table, char* key){
 void checkSymbolDeclared(SymbolTableEntryValue value){
     
     char* key = value.lexicalValue.label;
+    SymbolTableEntryValue found = getSymbolFromStackByKey(key);
+    if(found.symbolNature != SYMBOL_NATURE_NON_EXISTENT){
+        printf("Erro semântico:\n\t Símbolo \"%s\" (linha %d) foi previamente declarado (linha %d)\n", key, value.lineNumber, found.lineNumber);
+        exit(ERR_DECLARED);
+    }
+}
 
+SymbolTableEntryValue getSymbolFromStackByKey(char* key){
     // Percorre a pilha
     SymbolTableStack* stackTop = globalSymbolTableStack;
+    SymbolTableEntryValue value;
 
     do{
-        // Verifica se o identificador foi declarado nesta tabela
-        if(isKeyInTable(stackTop->symbolTable, key)){
-            // Se sim, print e retorno
-            SymbolTableEntryValue previousDeclaration = getSymbolTableEntryValueByKey(stackTop->symbolTable, key);
-            printf("Erro semântico:\n\t Símbolo \"%s\" (linha %d) foi previamente declarado (linha %d)\n", key, value.lineNumber, previousDeclaration.lineNumber);
-            exit(ERR_DECLARED);
-        }
-        // Aponta para o próximo elemento da pilha
+        value = getSymbolTableEntryValueByKey(stackTop->symbolTable, key);
         stackTop = stackTop->nextItem;
     
-    }while(stackTop != NULL);
+    }while((stackTop != NULL) && (value.symbolNature == SYMBOL_NATURE_NON_EXISTENT));
 
+    return value;
 }
 
 
@@ -339,7 +341,7 @@ void checkSymbolDeclared(SymbolTableEntryValue value){
 //////////////////////////////////////////////////////////////
 
 
-//          PRINTS
+//          UTILS
 
 
 //////////////////////////////////////////////////////////////
@@ -393,7 +395,21 @@ void printGlobalTableStack(int depth){
 
 }
 
+// Infere o tipo de um identificador. Assume que ele já está na tabela,
+// checando por erro de não-definição 
+DataType inferTypeFromIdentifier(LexicalValue identifier){
 
+    SymbolTableEntryValue value = getSymbolFromStackByKey(identifier.label);
+    if(value.symbolNature == SYMBOL_NATURE_NON_EXISTENT){
+        printf("Erro semântico: O identificador \"%s\" (linha %d) não foi declarado nesse escopo\n", 
+        identifier.label, identifier.lineNumber
+        );
+        exit(ERR_UNDECLARED);
+    }
+
+    return value.dataType;
+
+}
 
 
 

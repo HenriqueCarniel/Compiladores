@@ -285,7 +285,7 @@ header: arguments TK_OC_GE type '!' TK_IDENTIFICADOR
     // Cria contexto interno da função
     //addTableToGlobalStack(createSymbolTable());
 
-    $$ = createNode($5, DATA_TYPE_PLACEHOLDER);
+    $$ = createNode($5, $3);
     freeLexicalValue($2);
     freeLexicalValue($4);
 };
@@ -439,8 +439,10 @@ variable_declaration: type identifiers_list
 // Atribuição
 attribution_command: TK_IDENTIFICADOR '=' expression
 {
-    $$ = createNode($2, DATA_TYPE_PLACEHOLDER);
-    addChild($$, createNode($1, DATA_TYPE_PLACEHOLDER));
+    DataType type =  inferTypeFromIdentifier($1);
+
+    $$ = createNode($2, type);
+    addChild($$, createNode($1, type));
     addChild($$, $3);
 };
 
@@ -449,14 +451,18 @@ attribution_command: TK_IDENTIFICADOR '=' expression
 // Chamada de função
 function_call: TK_IDENTIFICADOR '(' ')'
 {
-    $$ = createNodeToFunctionCall($1, DATA_TYPE_PLACEHOLDER);
+    DataType type =  inferTypeFromIdentifier($1);
+
+    $$ = createNodeToFunctionCall($1, type);
     freeLexicalValue($2);
     freeLexicalValue($3);
 };
 
 function_call: TK_IDENTIFICADOR '(' expression_list ')'
 {
-    $$ = createNodeToFunctionCall($1, DATA_TYPE_PLACEHOLDER);
+    DataType type =  inferTypeFromIdentifier($1);
+
+    $$ = createNodeToFunctionCall($1, type);
     addChild($$, $3);
     freeLexicalValue($2);
     freeLexicalValue($4);
@@ -479,7 +485,7 @@ expression_list: expression ',' expression_list
 // Comando de retorno
 return_command: TK_PR_RETURN expression
 {
-    $$ = createNode($1, DATA_TYPE_PLACEHOLDER);
+    $$ = createNode($1, inferTypeFromNode($2));
     addChild($$, $2);
 };
 
@@ -488,7 +494,7 @@ return_command: TK_PR_RETURN expression
 // Comando de controle de fluxo
 flow_control_command: TK_PR_IF '(' expression ')' command_block
 {
-    $$ = createNode($1, DATA_TYPE_PLACEHOLDER);
+    $$ = createNode($1, inferTypeFromNode($3));
     addChild($$, $3);
     addChild($$, $5);
     freeLexicalValue($2);
@@ -497,7 +503,7 @@ flow_control_command: TK_PR_IF '(' expression ')' command_block
 
 flow_control_command: TK_PR_IF '(' expression ')' command_block TK_PR_ELSE command_block
 {
-    $$ = createNode($1, DATA_TYPE_PLACEHOLDER);
+    $$ = createNode($1, inferTypeFromNode($3));
     addChild($$, $3);
     addChild($$, $5);
     addChild($$, $7);
@@ -508,7 +514,7 @@ flow_control_command: TK_PR_IF '(' expression ')' command_block TK_PR_ELSE comma
 
 flow_control_command: TK_PR_WHILE '(' expression ')' command_block
 {
-    $$ = createNode($1, DATA_TYPE_PLACEHOLDER);
+    $$ = createNode($1, inferTypeFromNode($3));
     addChild($$, $3);
     addChild($$, $5);
     freeLexicalValue($2);
@@ -527,7 +533,7 @@ expression: expression_grade_eight
 
 expression_grade_eight: expression_grade_eight TK_OC_OR expression_grade_seven
 {
-    $$ = createNode($2, DATA_TYPE_PLACEHOLDER);
+    $$ = createNode($2, inferTypeFromNodes($1, $3));
     addChild($$, $1);
     addChild($$, $3);
 };
@@ -541,7 +547,7 @@ expression_grade_eight: expression_grade_seven
 
 expression_grade_seven: expression_grade_seven TK_OC_AND expression_grade_six
 {
-    $$ = createNode($2, DATA_TYPE_PLACEHOLDER);
+    $$ = createNode($2, inferTypeFromNodes($1, $3));
     addChild($$, $1);
     addChild($$, $3);
 };
@@ -555,14 +561,14 @@ expression_grade_seven: expression_grade_six
 
 expression_grade_six: expression_grade_six TK_OC_EQ expression_grade_five
 {
-    $$ = createNode($2, DATA_TYPE_PLACEHOLDER);
+    $$ = createNode($2, inferTypeFromNodes($1, $3));
     addChild($$, $1);
     addChild($$, $3);
 };
 
 expression_grade_six: expression_grade_six TK_OC_NE expression_grade_five
 {
-    $$ = createNode($2, DATA_TYPE_PLACEHOLDER);
+    $$ = createNode($2, inferTypeFromNodes($1, $3));
     addChild($$, $1);
     addChild($$, $3);
 };
@@ -576,28 +582,28 @@ expression_grade_six: expression_grade_five
 
 expression_grade_five: expression_grade_five '<' expression_grade_four
 {
-    $$ = createNode($2, DATA_TYPE_PLACEHOLDER);
+    $$ = createNode($2, inferTypeFromNodes($1, $3));
     addChild($$, $1);
     addChild($$, $3);
 };
 
 expression_grade_five: expression_grade_five '>' expression_grade_four
 {
-    $$ = createNode($2, DATA_TYPE_PLACEHOLDER);
+    $$ = createNode($2, inferTypeFromNodes($1, $3));
     addChild($$, $1);
     addChild($$, $3);
 };
 
 expression_grade_five: expression_grade_five TK_OC_LE expression_grade_four
 {
-    $$ = createNode($2, DATA_TYPE_PLACEHOLDER);
+    $$ = createNode($2, inferTypeFromNodes($1, $3));
     addChild($$, $1);
     addChild($$, $3);
 };
 
 expression_grade_five: expression_grade_five TK_OC_GE expression_grade_four
 {
-    $$ = createNode($2, DATA_TYPE_PLACEHOLDER);
+    $$ = createNode($2, inferTypeFromNodes($1, $3));
     addChild($$, $1);
     addChild($$, $3);
 };
@@ -611,14 +617,14 @@ expression_grade_five: expression_grade_four
 
 expression_grade_four: expression_grade_four '+' expression_grade_three
 {
-    $$ = createNode($2, DATA_TYPE_PLACEHOLDER);
+    $$ = createNode($2, inferTypeFromNodes($1, $3));
     addChild($$, $1);
     addChild($$, $3);
 };
 
 expression_grade_four: expression_grade_four '-' expression_grade_three
 {
-    $$ = createNode($2, DATA_TYPE_PLACEHOLDER);
+    $$ = createNode($2, inferTypeFromNodes($1, $3));
     addChild($$, $1);
     addChild($$, $3);
 };
@@ -632,21 +638,21 @@ expression_grade_four: expression_grade_three
 
 expression_grade_three: expression_grade_three '*' expression_grade_two
 {
-    $$ = createNode($2, DATA_TYPE_PLACEHOLDER);
+    $$ = createNode($2, inferTypeFromNodes($1, $3));
     addChild($$, $1);
     addChild($$, $3);
 };
 
 expression_grade_three: expression_grade_three '/' expression_grade_two
 {
-    $$ = createNode($2, DATA_TYPE_PLACEHOLDER);
+    $$ = createNode($2, inferTypeFromNodes($1, $3));
     addChild($$, $1);
     addChild($$, $3);
 };
 
 expression_grade_three: expression_grade_three '%' expression_grade_two
 {
-    $$ = createNode($2, DATA_TYPE_PLACEHOLDER);
+    $$ = createNode($2, inferTypeFromNodes($1, $3));
     addChild($$, $1);
     addChild($$, $3);
 };
@@ -660,13 +666,13 @@ expression_grade_three: expression_grade_two
 
 expression_grade_two: '-' expression_grade_one
 {
-    $$ = createNode($1, DATA_TYPE_PLACEHOLDER);
+    $$ = createNode($1, inferTypeFromNode($2));
     addChild($$, $2);
 };
 
 expression_grade_two: '!' expression_grade_one
 {
-    $$ = createNode($1, DATA_TYPE_PLACEHOLDER);
+    $$ = createNode($1, inferTypeFromNode($2));
     addChild($$, $2);
 };
 
@@ -679,7 +685,10 @@ expression_grade_two: expression_grade_one
 
 expression_grade_one: TK_IDENTIFICADOR
 {
-    $$ = createNode($1, DATA_TYPE_PLACEHOLDER);
+    // Procura pelo tipo do identificador
+    DataType type = inferTypeFromIdentifier($1);
+
+    $$ = createNode($1, type);
 };
 
 expression_grade_one: literal

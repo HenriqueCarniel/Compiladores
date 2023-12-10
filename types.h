@@ -1,5 +1,6 @@
 #ifndef TYPES_HEADER
 #define TYPES_HEADER
+#include <stdio.h>
 
 // ===============================
 // DATA TYPE
@@ -12,6 +13,9 @@ typedef enum DataType
     DATA_TYPE_UNDECLARED,
     DATA_TYPE_PLACEHOLDER // Para o que não sabemos fazer ainda
 } DataType;
+
+DataType inferTypeFromTypes(DataType t1, DataType t2);
+
 
 // ===============================
 // LEXICAL VALUE

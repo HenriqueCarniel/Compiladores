@@ -59,8 +59,11 @@ void freeSymbolTableStack(SymbolTableStack* stack);
 // Retorna uma entrada vazia
 SymbolTableEntryValue getEmptySymbolTableEntryValue();
 
-// Checa se há um valor associado a uma chave
+// Checa se há um valor associado a uma chave numa tabela
 SymbolTableEntryValue getSymbolTableEntryValueByKey(SymbolTable* table, char* key);
+
+// Percorre as tabelas da pilha por um valor associado à chave
+SymbolTableEntryValue getSymbolFromStackByKey(char* key);
 
 // djba2 hash function
 size_t getIndex(size_t capacity, char* key);
@@ -96,11 +99,13 @@ int isIdentifierDeclared(char* identifier);
 //////////////////////////////////////////////////////////////
 
 
-//          PRINTS
+//          UTILS
 
 
 //////////////////////////////////////////////////////////////
 
 void printGlobalTableStack(int depth);
+
+DataType inferTypeFromIdentifier(LexicalValue identifier);
 
 #endif

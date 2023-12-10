@@ -14,4 +14,7 @@ void exporta(Node* node);
 void printHeader(Node* node);
 void printTree(Node* node);
 
+DataType inferTypeFromNode(Node* node);
+DataType inferTypeFromNodes(Node* node1, Node* node2);
+
 #endif
