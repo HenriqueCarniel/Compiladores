@@ -31,9 +31,20 @@
 void initGlobalSymbolStack()
 {
     globalSymbolTableStack = createSymbolTableStack();
-    SymbolTable* globalTable = createSymbolTable();
-    globalSymbolTableStack = addTableToStack(globalSymbolTableStack, globalTable);
+    globalSymbolTableStack->symbolTable = createSymbolTable();
 }
+
+void addTableToGlobalStack(SymbolTable* symbolTable)
+{
+
+    SymbolTableStack* newStackFrame = createSymbolTableStack();
+    // Novo frame aponta para o topo da pilha global
+    newStackFrame->nextItem = globalSymbolTableStack;
+    // O frame se torna o novo topo
+    globalSymbolTableStack = newStackFrame;
+}
+
+
 
 /*
 
@@ -60,7 +71,13 @@ SymbolTable* createSymbolTable()
     if (!table) return NULL;
 
     table->n_buckets = N_SYMBOL_TABLE_BUCKETS;
-    table->buckets = malloc(sizeof(SymbolTableBucket) * N_SYMBOL_TABLE_BUCKETS);
+    table->buckets = calloc(N_SYMBOL_TABLE_BUCKETS, sizeof(SymbolTableBucket));
+    
+    int i;
+    for(i=0; i<N_SYMBOL_TABLE_BUCKETS;i++){
+        table->buckets[i].n = i;
+        table->buckets[i].entries = NULL;
+    }
 
     return table;
 }
@@ -69,16 +86,60 @@ SymbolTable* createSymbolTable()
     Criação de um valor de símbolo para a tabela de símbolos
 
 */
-SymbolTableEntryValue createSymbolTableEntryValue(int lineNumber, SymbolNature symbolNature, DataType dataType, LexicalValue lexicalValue){
+SymbolTableEntryValue createSymbolTableEntryValue(SymbolNature symbolNature, DataType dataType, LexicalValue lexicalValue){
     SymbolTableEntryValue value;
 
-    value.lineNumber = lineNumber;
+    value.lineNumber = lexicalValue.lineNumber;
     value.symbolNature = symbolNature;
     value.dataType = dataType;
     value.lexicalValue = lexicalValue;
+    // Copia a string
+    value.lexicalValue.label = strdup(lexicalValue.label);
 
     return value;
 }
+
+void freeSymbolTableEntryValue(SymbolTableEntryValue value){
+    // Libera o valor léxico associado
+    freeLexicalValue(value.lexicalValue);
+}
+
+void freeSymbolTable(SymbolTable* table){
+    int i;
+    SymbolTableBucket* bucket;
+    SymbolTableEntry* entry;
+    SymbolTableEntry* nextEntry;
+    // Percorre cada bucket e libera suas entradas
+    for(i=0; i < N_SYMBOL_TABLE_BUCKETS; i++){
+        bucket = &table->buckets[i];
+        entry = bucket->entries;
+        // Percorre entradas
+        while(entry != NULL){
+            nextEntry = entry->next;
+            free(entry->key);
+            freeSymbolTableEntryValue(entry->value);
+            free(entry);
+            entry = nextEntry;
+        }
+
+    }
+    free(table->buckets);
+    // Libera tabela
+    free(table);
+}
+
+void freeSymbolTableStack(SymbolTableStack* stack){
+    SymbolTableStack* next;
+    do{
+        next = stack->nextItem;
+        freeSymbolTable(stack->symbolTable);
+        stack = next;
+    }while(stack != NULL);
+
+    free(stack);
+}
+
+
 
 
 //////////////////////////////////////////////////////////////
@@ -110,7 +171,7 @@ SymbolTableEntryValue getSymbolTableEntryValueByKey(SymbolTable* table, char* ke
 
     // Percorre os elementos do bucket até achar match ou o fim do bucket
     SymbolTableEntry* entry = bucket->entries;
-    do{
+    while(entry != NULL){
     
         if (isSameKey(entry, key))
         {
@@ -119,7 +180,7 @@ SymbolTableEntryValue getSymbolTableEntryValueByKey(SymbolTable* table, char* ke
         }
         entry = entry->next;
     
-    }while(entry != NULL);
+    }
 
     return getEmptySymbolTableEntryValue();
 }
@@ -151,90 +212,89 @@ int isSameKey(SymbolTableEntry* entry, char* key)
 //////////////////////////////////////////////////////////////
 
 // Adiciona um símbolo a uma tabela de símbolos
-void addSymbolToTable(SymbolTable* table, char* key, SymbolTableEntryValue value){
+void addSymbolValueToGlobalTableStack(SymbolTableEntryValue value){
+
+    // Se não for literal, checa se já foi declarado na tabela
+    if (value.symbolNature != SYMBOL_NATURE_LITERAL){
+        checkSymbolDeclared(value);
+    }
+    
+    SymbolTable* table = globalSymbolTableStack->symbolTable;
+
+    ////////////////////////////
+    // CÁLCULO DA CHAVE
+    ////////////////////////////
+    char* key = strdup(value.lexicalValue.label);;
+
+    ////////////////////////////
+    // ADIÇÃO À HASH TABLE
+    ////////////////////////////
+    
     // Pega o índice do bucket
     size_t index = getIndex(table->n_buckets, key);
     SymbolTableBucket* bucket = &table->buckets[index];
-    SymbolTableEntry* cur_entry = bucket->entries;
-    // Percorre lista encadeada até o fim
-    while (cur_entry->next != NULL){
-        cur_entry = cur_entry->next;
+    
+    // Aloca uma nova entrada
+    SymbolTableEntry* new_entry = malloc(sizeof(SymbolTableEntry));
+    new_entry->key = strdup(key);
+    new_entry->value = value;
+    new_entry->next = NULL;
+
+    // Se já existem elementos no bucket, adiciona ao fim da lista encadeada
+    if(bucket->entries != NULL){
+        SymbolTableEntry* cur_entry = bucket->entries;
+        SymbolTableEntry* last_entry;
+
+        // Percorre lista encadeada até o fim
+        do{
+            last_entry = cur_entry;
+            cur_entry = cur_entry->next;
+        }while (cur_entry != NULL);
+
+        // Adiciona a nova entrada ao fim da lista
+        last_entry->next = new_entry;
+
     }
-    // Append de uma nova entrada
-    cur_entry->next = malloc(sizeof(SymbolTableEntry));
-    strcpy(cur_entry->next->key, key);
-    cur_entry->next->value = value;
+    else{
+        bucket->entries = new_entry;
+    }
 
 }
 
-// Verifica se o identificador já foi declarado em uma tabela dada
-int isIdentifierInTable(SymbolTable* table, char* identifier){
-    SymbolTableEntryValue value = getSymbolTableEntryValueByKey(table, identifier);
+// Verifica se a chave já existe em uma tabela dada
+int isKeyInTable(SymbolTable* table, char* key){
+    SymbolTableEntryValue value = getSymbolTableEntryValueByKey(table, key);
     if (value.symbolNature == SYMBOL_NATURE_NON_EXISTENT){
-        return 1;
+        return 0;
     }
-    return 0;
+    return 1;
 }
 
-// Verifica se o identificador já foi declarado nas tabelas da pilhas
+// Verifica se o símbolo já foi declarado nas tabelas da pilhas
 // (percorre do topo ao fim da pilha)
-int isIdentifierDeclared(LexicalValue lexicalValue){
+void checkSymbolDeclared(SymbolTableEntryValue value){
     
-    char* identifier = lexicalValue.label;
-    
+    char* key = value.lexicalValue.label;
+
     // Percorre a pilha
     SymbolTableStack* stackTop = globalSymbolTableStack;
 
     do{
         // Verifica se o identificador foi declarado nesta tabela
-        if(isIdentifierInTable(stackTop->symbolTable, identifier)){
-            // Se sim, print do erro
-            SymbolTableEntryValue value = getSymbolTableEntryValueByKey(stackTop->symbolTable, identifier);
-            int line_orig = lexicalValue.lineNumber;
-            int line_prev_decl = value.lexicalValue.lineNumber;
-
-            printf("(Linha %d) Erro: identificador \"%s\" ja declarado na linha %d\n", line_orig, identifier, line_prev_decl);
-            return ERR_DECLARED;
+        if(isKeyInTable(stackTop->symbolTable, key)){
+            // Se sim, print e retorno
+            SymbolTableEntryValue previousDeclaration = getSymbolTableEntryValueByKey(stackTop->symbolTable, key);
+            printf("Erro semântico:\n\t Símbolo \"%s\" (linha %d) foi previamente declarado (linha %d)\n", key, value.lineNumber, previousDeclaration.lineNumber);
+            exit(ERR_DECLARED);
         }
         // Aponta para o próximo elemento da pilha
         stackTop = stackTop->nextItem;
     
-    }while(stackTop->nextItem != NULL);
-
-    return 0;
-
-}
-
-// Adiciona um identificador à pilha de tabelas
-int addIdentifierToTableStack(DataType type, LexicalValue lexval){
-
-    int retval = isIdentifierDeclared(lexval);
-
-    if (retval != 0) return retval;
-
-    // Adiciona à tabela no topo da pilha
-    SymbolTable* stackTopTable = globalSymbolTableStack->symbolTable;
-
-    char* key = lexval.label; // Chave de um identificador = valor de lexval
-    SymbolTableEntryValue value = createSymbolTableEntryValue(lexval.lineNumber, SYMBOL_NATURE_IDENTIFIER, type, lexval);
-    addSymbolToTable(stackTopTable, key, value);
-
-    return 0;
+    }while(stackTop != NULL);
 
 }
 
 
-SymbolTableStack* addTableToStack(SymbolTableStack* currentFirstTable, SymbolTable* symbolTable)
-{
-    if (!currentFirstTable) return NULL;
-    if (!symbolTable) return NULL;
-
-    SymbolTableStack* newFirstTable = createSymbolTableStack();
-    newFirstTable->symbolTable = symbolTable;
-    newFirstTable->nextItem = currentFirstTable;
-
-    return newFirstTable;
-}
 
 
 

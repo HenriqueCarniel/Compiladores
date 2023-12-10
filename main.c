@@ -20,6 +20,9 @@ int main (int argc, char **argv)
   exporta (arvore);
   removeNode(arvore);
   arvore = NULL;
+  
   yylex_destroy();
+  freeSymbolTableStack(globalSymbolTableStack);
+
   return ret;
 }

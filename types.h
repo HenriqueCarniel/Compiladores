@@ -9,7 +9,8 @@ typedef enum DataType
     DATA_TYPE_INT,
     DATA_TYPE_FLOAT,
     DATA_TYPE_BOOL,
-    DATA_TYPE_PLACEHOLDER
+    DATA_TYPE_UNDECLARED,
+    DATA_TYPE_PLACEHOLDER // Para o que não sabemos fazer ainda
 } DataType;
 
 // ===============================
@@ -93,6 +94,7 @@ typedef struct SymbolTableEntry
 
 typedef struct SymbolTableBucket
 {
+    int n;
     SymbolTableEntry* entries;
  }SymbolTableBucket;
 

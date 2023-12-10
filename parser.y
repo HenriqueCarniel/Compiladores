@@ -6,23 +6,31 @@ Jose Henrique Lima Marques */
 #include <stdio.h>
 #include "tree.h"
 #include "lexical_value.h"
+#include "types.h"
 
 int yylex(void);
 void yyerror (char const *mensagem);
 int get_line_number();
 extern void *arvore;
+
+// O tipo atualmente declarado
+DataType declaredType = DATA_TYPE_UNDECLARED;
+
 %}
 
 %code requires
 {
     #include "tree.h"
     #include "lexical_value.h"
+    #include "symbol_table.h"
 }
 
 %union
 {
     LexicalValue LexicalValue;
     struct Node* Node;
+    DataType DataType;
+    SymbolNature SymbolNature;
 }
 
 %define parse.error verbose
@@ -50,7 +58,7 @@ extern void *arvore;
 
 %type<Node> program
 %type<Node> elements_list
-%type<Node> type
+%type<DataType> type
 %type<Node> literal
 %type<Node> global_variables
 %type<Node> identifiers_list
@@ -120,69 +128,144 @@ elements_list: global_variables
 
 
 // ======================== TIPOS ========================
+
 type: TK_PR_INT
 {
-    $$ = NULL;
+    $$ = DATA_TYPE_INT;
     freeLexicalValue($1);
 };
 
 type: TK_PR_FLOAT
 {
-    $$ = NULL;
+    $$ = DATA_TYPE_FLOAT;
     freeLexicalValue($1);
 };
 
 type: TK_PR_BOOL
 {
-    $$ = NULL;
+    $$ = DATA_TYPE_BOOL;
     freeLexicalValue($1);
 };
 
 
 
-// ======================== LITERIAS ========================
+// ======================== LITERAIS ========================
 literal: TK_LIT_INT
 {
     $$ = createNode($1, DATA_TYPE_INT);
+    SymbolTableEntryValue value = createSymbolTableEntryValue(
+        SYMBOL_NATURE_LITERAL,
+        DATA_TYPE_INT,
+        $1
+    );
+    addSymbolValueToGlobalTableStack(value);
+
 };
 
 literal: TK_LIT_FLOAT
 {
     $$ = createNode($1, DATA_TYPE_FLOAT);
+    SymbolTableEntryValue value = createSymbolTableEntryValue(
+        SYMBOL_NATURE_LITERAL,
+        DATA_TYPE_FLOAT,
+        $1
+    );
+    addSymbolValueToGlobalTableStack(value);
 };
 
 literal: TK_LIT_FALSE
 {
     $$ = createNode($1, DATA_TYPE_BOOL);
+    SymbolTableEntryValue value = createSymbolTableEntryValue(
+        SYMBOL_NATURE_LITERAL,
+        DATA_TYPE_BOOL,
+        $1
+    );
+    addSymbolValueToGlobalTableStack(value);
 };
 
 literal: TK_LIT_TRUE
 {
     $$ = createNode($1, DATA_TYPE_BOOL);
+    SymbolTableEntryValue value = createSymbolTableEntryValue(
+        SYMBOL_NATURE_LITERAL,
+        DATA_TYPE_BOOL,
+        $1
+    );
+    addSymbolValueToGlobalTableStack(value);
 };
 
 
 
 // ======================== VARIÁVEIS GLOBAIS ========================
+/*
+
+    Exemplo de redução:
+    T=type
+    IL=identifiers_list
+
+    EMPILHA INT
+    REDUZ T->INT
+    EMPILHA X1
+    EMPILHA ,
+    EMPILHA X2
+    EMPILHA ,
+    EMPILHA X3
+    REDUZ IL->X3
+    REDUZ IL->X2, IL
+    REDUZ IL->X1, IL
+
+                                |   int x1, x2, x3;
+    1ª redução: T->int          |   T x1, x2, x3
+    2ª redução: IL->x3          |   T x1, x2, IL
+    3ª redução: IL->x2,IL       |   T x1, IL
+    4ª redução: IL->x1,IL       |   T IL
+    5ª redução: GV-> T IL       |   GV
+
+    Logo, tipo é reduzido primeiro
+
+*/
+
+
 global_variables: type identifiers_list ';'
 {
     $$ = NULL;
+
+    // type vai ser reduzido primeiro
+    declaredType = $1;
+
     removeNode($2);
     freeLexicalValue($3);
-};
+    };
 
 identifiers_list: TK_IDENTIFICADOR
 {
     $$ = NULL;
+    // Adiciona identificador à tabela de tipos
+    SymbolTableEntryValue value = createSymbolTableEntryValue(
+        SYMBOL_NATURE_IDENTIFIER,
+        declaredType,
+        $1
+    );
+    addSymbolValueToGlobalTableStack(value);
+    
     freeLexicalValue($1);
-};
+    };
 
 identifiers_list: TK_IDENTIFICADOR ',' identifiers_list
 {
     $$ = NULL;
+    // Adiciona identificador à tabela de tipos
+    SymbolTableEntryValue value = createSymbolTableEntryValue(
+        SYMBOL_NATURE_IDENTIFIER,
+        declaredType,
+        $1
+    );
+    addSymbolValueToGlobalTableStack(value);
+
     freeLexicalValue($1);
     freeLexicalValue($2);
-};
+    };
 
 
 
