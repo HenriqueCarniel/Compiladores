@@ -252,6 +252,11 @@ void addSymbolValueToGlobalTableStack(SymbolTableEntryValue value){
     addSymbolValueToTable(globalSymbolTableStack->symbolTable, value);
 }
 
+void addSymbolValueToBelowGlobalTableStack(SymbolTableEntryValue value){
+    addSymbolValueToTable(globalSymbolTableStack->nextItem->symbolTable, value);
+}
+
+
 // Adiciona um símbolo a uma tabela de símbolos
 void addSymbolValueToTable(SymbolTable* table, SymbolTableEntryValue value){
 
@@ -336,6 +341,18 @@ SymbolTableEntryValue getSymbolFromStackByKey(char* key){
     return value;
 }
 
+SymbolTable* getTableFromStackWithMatchingKey(char* key){
+    // Percorre a pilha
+    SymbolTableStack* stackTop = globalSymbolTableStack;
+    SymbolTableEntryValue value;
+
+    while(stackTop != NULL && isKeyInTable(stackTop->symbolTable, key)){
+        stackTop = stackTop->nextItem;
+    }
+
+    return stackTop->symbolTable;
+}
+
 
 
 //////////////////////////////////////////////////////////////
@@ -411,7 +428,27 @@ DataType inferTypeFromIdentifier(LexicalValue identifier){
 
 }
 
+// Checa se um identificador é variável, lançando erro se não
+void checkIdentifierIsVariable(LexicalValue identifier){
+    SymbolTableEntryValue value = getSymbolFromStackByKey(identifier.label);
+    if(value.symbolNature != SYMBOL_NATURE_IDENTIFIER){
+        printf("Erro semântico: O identificador \"%s\" (linha %d) foi usado como variável, mas foi declarado como função (linha %d)\n", 
+        identifier.label, identifier.lineNumber, value.lineNumber
+        );
+        exit(ERR_FUNCTION);
+    }
+}
 
+// Checa se um identificador é função, lançando erro se não
+void checkIdentifierIsFunction(LexicalValue identifier){
+    SymbolTableEntryValue value = getSymbolFromStackByKey(identifier.label);
+    if(value.symbolNature != SYMBOL_NATURE_FUNCTION){
+        printf("Erro semântico: O identificador \"%s\" (linha %d) foi usado como função, mas foi declarado como variável (linha %d)\n", 
+        identifier.label, identifier.lineNumber, value.lineNumber
+        );
+        exit(ERR_FUNCTION);
+    }
+}
 
 
 

@@ -65,7 +65,7 @@ DataType declaredType = DATA_TYPE_UNDECLARED;
 %type<Node> functions
 %type<Node> header
 %type<Node> body
-%type<Node> arguments
+%type<Node> function_arguments
 %type<Node> parameters_list
 %type<Node> command_block
 %type<Node> simple_command_list
@@ -277,13 +277,25 @@ functions: header body
 {
     $$ = $1;
     addChild($$, $2);
+
+    // Após a redução de header e body, desempilhamos
+    // o contexto criado para os argumentos, com a pilha
+    // tendo somente o frame global
+    popGlobalStack();
+
 };
 
-header: arguments TK_OC_GE type '!' TK_IDENTIFICADOR
-{
-    /* TO-DO: Copiar os argumentos para o novo escopo (?) */
-    // Cria contexto interno da função
-    //addTableToGlobalStack(createSymbolTable());
+header: function_arguments TK_OC_GE type '!' TK_IDENTIFICADOR
+{   
+    // Adiciona identificador à tabela de tipos
+    SymbolTableEntryValue value = createSymbolTableEntryValue(
+        SYMBOL_NATURE_FUNCTION,
+        declaredType,
+        $5
+    );
+    // Porém, devido ao fato de estarmos no escopo dos parâmetros,
+    // o identificador deve ir na tabela abaixo (global)
+    addSymbolValueToBelowGlobalTableStack(value);
 
     $$ = createNode($5, $3);
     freeLexicalValue($2);
@@ -298,17 +310,24 @@ body: command_block
 
 
 // Lista de parâmetros
-arguments: '(' ')'
+
+// O início de uma lista de parâmetros de uma função
+// leva a criação de um novo escopo onde estarão os argumentos
+function_argument_begin: '('
+{
+    addTableToGlobalStack(createSymbolTable());
+    freeLexicalValue($1);
+}
+
+function_arguments: function_argument_begin ')'
 {
     $$ = NULL;
-    freeLexicalValue($1);
     freeLexicalValue($2);
 };
 
-arguments: '(' parameters_list ')'
+function_arguments: function_argument_begin parameters_list ')'
 {
     $$ = NULL;
-    freeLexicalValue($1);
     freeLexicalValue($3);
 };
 
@@ -440,6 +459,7 @@ variable_declaration: type identifiers_list
 attribution_command: TK_IDENTIFICADOR '=' expression
 {
     DataType type =  inferTypeFromIdentifier($1);
+    checkIdentifierIsVariable($1);
 
     $$ = createNode($2, type);
     addChild($$, createNode($1, type));
@@ -452,6 +472,7 @@ attribution_command: TK_IDENTIFICADOR '=' expression
 function_call: TK_IDENTIFICADOR '(' ')'
 {
     DataType type =  inferTypeFromIdentifier($1);
+    checkIdentifierIsFunction($1);
 
     $$ = createNodeToFunctionCall($1, type);
     freeLexicalValue($2);
@@ -461,6 +482,7 @@ function_call: TK_IDENTIFICADOR '(' ')'
 function_call: TK_IDENTIFICADOR '(' expression_list ')'
 {
     DataType type =  inferTypeFromIdentifier($1);
+    checkIdentifierIsFunction($1);
 
     $$ = createNodeToFunctionCall($1, type);
     addChild($$, $3);
@@ -687,6 +709,7 @@ expression_grade_one: TK_IDENTIFICADOR
 {
     // Procura pelo tipo do identificador
     DataType type = inferTypeFromIdentifier($1);
+    checkIdentifierIsVariable($1);
 
     $$ = createNode($1, type);
 };

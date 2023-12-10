@@ -84,6 +84,7 @@ int isSameKey(SymbolTableEntry* entry, char* key);
 void addSymbolValueToTable(SymbolTable* table, SymbolTableEntryValue value);
 
 void addSymbolValueToGlobalTableStack(SymbolTableEntryValue value);
+void addSymbolValueToBelowGlobalTableStack(SymbolTableEntryValue value);
 
 // Verifica se a chave já existe em uma tabela dada
 int isKeyInTable(SymbolTable* table, char* key);
@@ -107,5 +108,8 @@ int isIdentifierDeclared(char* identifier);
 void printGlobalTableStack(int depth);
 
 DataType inferTypeFromIdentifier(LexicalValue identifier);
+
+void checkIdentifierIsVariable(LexicalValue identifier);
+void checkIdentifierIsFunction(LexicalValue identifier);
 
 #endif
