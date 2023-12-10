@@ -296,6 +296,61 @@ void checkSymbolDeclared(SymbolTableEntryValue value){
 
 
 
+//////////////////////////////////////////////////////////////
+
+
+//          PRINTS
+
+
+//////////////////////////////////////////////////////////////
+
+void printGlobalTableStack(){
+    SymbolTableStack* stackTop = globalSymbolTableStack;
+    SymbolTable* table;
+
+    int i = 0;
+    do{
+        printf("======================================\n");
+        printf("                FRAME %d\n", i);
+        printf("======================================\n");
+        int bucket_idx;
+        SymbolTableEntry* entry;
+        table = stackTop->symbolTable;
+        for(bucket_idx=0; bucket_idx < table->n_buckets; bucket_idx++){
+            entry = table->buckets[bucket_idx].entries;
+            if(entry != NULL) printf("Bucket %d\n", bucket_idx);
+            while(entry != NULL){
+                char* key = entry->key;
+                SymbolTableEntryValue value = entry->value;
+                printf("\t");
+                printf("Símbolo=%s ", key);
+                char* str_datatype;
+                switch(value.dataType){
+                    case DATA_TYPE_INT: str_datatype = "int"; break;
+                    case DATA_TYPE_FLOAT: str_datatype = "float"; break;
+                    case DATA_TYPE_BOOL: str_datatype = "bool"; break;
+                    default: str_datatype = "ERROR"; break;
+                }
+                printf("Tipo=%s ", str_datatype);
+                char* str_nature;
+                switch(value.symbolNature){
+                    case SYMBOL_NATURE_LITERAL: str_datatype = "literal"; break;
+                    case SYMBOL_NATURE_IDENTIFIER: str_datatype = "identifier"; break;
+                    case SYMBOL_NATURE_FUNCTION: str_datatype = "function"; break;
+                    default: "ERROR"; break;
+                }
+                printf("Natureza=%s ", str_datatype);
+                printf("\n");
+                entry = entry->next;
+            }
+        }
+        stackTop = stackTop->nextItem;
+
+
+    }while(stackTop != NULL);
+
+
+}
 
 
 

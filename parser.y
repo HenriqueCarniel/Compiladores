@@ -128,21 +128,25 @@ elements_list: global_variables
 
 
 // ======================== TIPOS ========================
+// Tipos vão ser reduzidos antes dos identificadores, conforme regras
 
 type: TK_PR_INT
 {
+    declaredType = DATA_TYPE_INT;
     $$ = DATA_TYPE_INT;
     freeLexicalValue($1);
 };
 
 type: TK_PR_FLOAT
 {
+    declaredType = DATA_TYPE_FLOAT;
     $$ = DATA_TYPE_FLOAT;
     freeLexicalValue($1);
 };
 
 type: TK_PR_BOOL
 {
+    declaredType = DATA_TYPE_BOOL;
     $$ = DATA_TYPE_BOOL;
     freeLexicalValue($1);
 };
@@ -230,10 +234,6 @@ literal: TK_LIT_TRUE
 global_variables: type identifiers_list ';'
 {
     $$ = NULL;
-
-    // type vai ser reduzido primeiro
-    declaredType = $1;
-
     removeNode($2);
     freeLexicalValue($3);
     };

@@ -88,4 +88,14 @@ void checkSymbolDeclared(SymbolTableEntryValue value);
 // (percorre do topo ao fim da pilha)
 int isIdentifierDeclared(char* identifier);
 
+//////////////////////////////////////////////////////////////
+
+
+//          PRINTS
+
+
+//////////////////////////////////////////////////////////////
+
+void printGlobalTableStack();
+
 #endif
