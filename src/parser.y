@@ -95,7 +95,7 @@ program: elements_list
     arvore = $$;
 };
 
-program: 
+program: %empty 
 {
     $$ = NULL;
     arvore = NULL;
@@ -514,33 +514,40 @@ return_command: TK_PR_RETURN expression
 
 
 // Comando de controle de fluxo
-flow_control_command: TK_PR_IF '(' expression ')' command_block
+flow_control_command: TK_PR_IF '(' expression ')' '{' simple_command_list '}'
 {
     $$ = createNode($1, inferTypeFromNode($3));
     addChild($$, $3);
-    addChild($$, $5);
+    addChild($$, $6);
     freeLexicalValue($2);
     freeLexicalValue($4);
+    freeLexicalValue($5);
+    freeLexicalValue($7);
 }; 
 
-flow_control_command: TK_PR_IF '(' expression ')' command_block TK_PR_ELSE command_block
+flow_control_command: TK_PR_IF '(' expression ')' '{' simple_command_list '}' TK_PR_ELSE '{' simple_command_list '}'
 {
     $$ = createNode($1, inferTypeFromNode($3));
     addChild($$, $3);
-    addChild($$, $5);
-    addChild($$, $7);
+    addChild($$, $6);
+    addChild($$, $10);
     freeLexicalValue($2);
     freeLexicalValue($4);
-    freeLexicalValue($6);
+    freeLexicalValue($5);
+    freeLexicalValue($7);
+    freeLexicalValue($9);
+    freeLexicalValue($11);
 };
 
-flow_control_command: TK_PR_WHILE '(' expression ')' command_block
+flow_control_command: TK_PR_WHILE '(' expression ')' '{' simple_command_list '}'
 {
     $$ = createNode($1, inferTypeFromNode($3));
     addChild($$, $3);
-    addChild($$, $5);
+    addChild($$, $6);
     freeLexicalValue($2);
     freeLexicalValue($4);
+    freeLexicalValue($5);
+    freeLexicalValue($7);
 };
 
 
