@@ -1,6 +1,6 @@
 #include "tree.h"
 
-Node* createNode(LexicalValue lexicalValue, DataType dataType)
+Node* createNodeFromLexicalValue(LexicalValue lexicalValue, DataType dataType)
 {
     Node* node = malloc(sizeof(Node));
 
@@ -13,9 +13,26 @@ Node* createNode(LexicalValue lexicalValue, DataType dataType)
     return node;
 }
 
+Node* createNodeFromLabel(char* label, DataType dataType)
+{
+    Node* node = malloc(sizeof(Node));
+
+    node->lexicalValue.label = label;
+    node->lexicalValue.lineNumber = -1;
+    node->lexicalValue.type = OTHERS;
+    
+    node->dataType = dataType;
+    node->parent = NULL;
+    node->brother = NULL;
+    node->child = NULL;
+
+    return node;
+}
+
+
 Node* createNodeToFunctionCall(LexicalValue lexicalValue, DataType dataType)
 {
-    Node* node = createNode(lexicalValue, dataType);
+    Node* node = createNodeFromLexicalValue(lexicalValue, dataType);
 
     char* start = "call ";
     char* newLabel = malloc(strlen(start) + strlen(node->lexicalValue.label) + 1);

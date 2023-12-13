@@ -5,7 +5,8 @@
 #include "lexical_value.h"
 #include "types.h"
 
-Node* createNode(LexicalValue lexicalValue, DataType dataType);
+Node* createNodeFromLexicalValue(LexicalValue lexicalValue, DataType dataType);
+Node* createNodeFromLabel(char* label, DataType dataType);
 Node* createNodeToFunctionCall(LexicalValue lexicalValue, DataType dataType);
 void addChild(Node* parent, Node* child);
 Node* getLastChild(Node* parent);

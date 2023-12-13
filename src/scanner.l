@@ -20,23 +20,27 @@ Jose Henrique Lima Marques */
 white_space [ \t\n\r]
 multiline_comment \/\*(\/)*([^/]|[^*/](\/)+)*\*\/
 inline_comment "//".*
-special_char [-!*/%+<>{}()=,;]
+special_char_operators [-!*/%+<>=]
+special_char [{}(),;]
 
 %%
 
-"int"       { yylval.LexicalValue = createLexicalValue(yytext, OTHERS, yylineno); return TK_PR_INT; }
-"float"     { yylval.LexicalValue = createLexicalValue(yytext, OTHERS, yylineno); return TK_PR_FLOAT; }
-"bool"      { yylval.LexicalValue = createLexicalValue(yytext, OTHERS, yylineno); return TK_PR_BOOL; }
-"if"        { yylval.LexicalValue = createLexicalValue(yytext, OTHERS, yylineno); return TK_PR_IF; }
-"else"      { yylval.LexicalValue = createLexicalValue(yytext, OTHERS, yylineno); return TK_PR_ELSE; }
-"while"     { yylval.LexicalValue = createLexicalValue(yytext, OTHERS, yylineno); return TK_PR_WHILE; }
-"return"    { yylval.LexicalValue = createLexicalValue(yytext, OTHERS, yylineno); return TK_PR_RETURN; }
-"<="        { yylval.LexicalValue = createLexicalValue(yytext, OTHERS, yylineno); return TK_OC_LE; }
-">="        { yylval.LexicalValue = createLexicalValue(yytext, OTHERS, yylineno); return TK_OC_GE; }
-"=="        { yylval.LexicalValue = createLexicalValue(yytext, OTHERS, yylineno); return TK_OC_EQ; }
-"!="        { yylval.LexicalValue = createLexicalValue(yytext, OTHERS, yylineno); return TK_OC_NE; }
-"&"         { yylval.LexicalValue = createLexicalValue(yytext, OTHERS, yylineno); return TK_OC_AND; }
-"|"         { yylval.LexicalValue = createLexicalValue(yytext, OTHERS, yylineno); return TK_OC_OR; }
+"int"                               { return TK_PR_INT; }
+"float"                             { return TK_PR_FLOAT; }
+"bool"                              { return TK_PR_BOOL; }
+{special_char}                      { return yytext[0]; }
+"else"                              { return TK_PR_ELSE; }
+
+"if"                                { yylval.ASTLabel = strndup(yytext, 2); return TK_PR_IF; }
+"while"                             { yylval.ASTLabel = strndup(yytext, 5); return TK_PR_WHILE; }
+"return"                            { yylval.ASTLabel = strndup(yytext, 6); return TK_PR_RETURN; }
+"<="                                { yylval.ASTLabel = strndup(yytext, 2); return TK_OC_LE; }
+">="                                { yylval.ASTLabel = strndup(yytext, 2); return TK_OC_GE; }
+"=="                                { yylval.ASTLabel = strndup(yytext, 2); return TK_OC_EQ; }
+"!="                                { yylval.ASTLabel = strndup(yytext, 2); return TK_OC_NE; }
+"&"                                 { yylval.ASTLabel = strndup(yytext, 1); return TK_OC_AND; }
+"|"                                 { yylval.ASTLabel = strndup(yytext, 1); return TK_OC_OR; }
+{special_char_operators}            { yylval.ASTLabel = strndup(yytext, 1); return yytext[0]; }
 
 "false"             { yylval.LexicalValue = createLexicalValue(yytext, LITERAL, yylineno); return TK_LIT_FALSE; }
 "true"              { yylval.LexicalValue = createLexicalValue(yytext, LITERAL, yylineno); return TK_LIT_TRUE; }
@@ -47,7 +51,6 @@ special_char [-!*/%+<>{}()=,;]
 {white_space}           {}
 {inline_comment}        {}
 {multiline_comment}     {}
-{special_char}          { yylval.LexicalValue = createLexicalValue(yytext, OTHERS, yylineno); return yytext[0]; }
 
 .       { return TK_ERRO; }
 
