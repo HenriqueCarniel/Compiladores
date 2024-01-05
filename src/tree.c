@@ -1,10 +1,11 @@
 #include "tree.h"
 
-Node* createNode(LexicalValue lexicalValue)
+Node* createNodeFromLexicalValue(LexicalValue lexicalValue, DataType dataType)
 {
     Node* node = malloc(sizeof(Node));
 
     node->lexicalValue = lexicalValue;
+    node->dataType = dataType;
     node->parent = NULL;
     node->brother = NULL;
     node->child = NULL;
@@ -12,9 +13,26 @@ Node* createNode(LexicalValue lexicalValue)
     return node;
 }
 
-Node* createNodeToFunctionCall(LexicalValue lexicalValue)
+Node* createNodeFromLabel(char* label, DataType dataType)
 {
-    Node* node = createNode(lexicalValue);
+    Node* node = malloc(sizeof(Node));
+
+    node->lexicalValue.label = label;
+    node->lexicalValue.lineNumber = -1;
+    node->lexicalValue.type = OTHERS;
+    
+    node->dataType = dataType;
+    node->parent = NULL;
+    node->brother = NULL;
+    node->child = NULL;
+
+    return node;
+}
+
+
+Node* createNodeToFunctionCall(LexicalValue lexicalValue, DataType dataType)
+{
+    Node* node = createNodeFromLexicalValue(lexicalValue, dataType);
 
     char* start = "call ";
     char* newLabel = malloc(strlen(start) + strlen(node->lexicalValue.label) + 1);
@@ -84,7 +102,27 @@ void exporta(Node* node)
 
 void printHeader(Node* node)
 {
-    printf("%p [label=\"%s\"];\n", node, node->lexicalValue.label);
+    const char* type_str;
+    switch (node->dataType)
+    {
+    case DATA_TYPE_INT:
+        type_str = "int";
+        break;
+    case DATA_TYPE_FLOAT:
+        type_str = "float";
+        break;
+    case DATA_TYPE_BOOL:
+        type_str = "bool";
+        break;
+    case DATA_TYPE_PLACEHOLDER:
+        type_str = "placeholder";
+        break;
+    default:
+        type_str = "ERROR";
+        break;
+    }
+
+    printf("%p [label=\"%s\" type=\"%s\"];\n", node, node->lexicalValue.label, type_str);
     if (node->child)
     {
         printHeader(node->child);
@@ -109,4 +147,17 @@ void printTree(Node* node)
     {
         printTree(node->brother);
     }
+}
+
+// Infere tipo a partir de um nodo
+DataType inferTypeFromNode(Node* node){
+    return node->dataType;
+}
+
+// Infere tipo a partir de dois nodos
+DataType inferTypeFromNodes(Node* node1, Node* node2){
+    DataType inferred_type = inferTypeFromTypes(node1->dataType, node2->dataType);
+
+    return inferred_type;
+
 }
