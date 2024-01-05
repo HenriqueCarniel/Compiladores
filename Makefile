@@ -29,7 +29,7 @@ _CFLAGS_DEBUG 			= -g
 BISON_FLAGS				=
 _BISON_FLAGS_DEBUG 		= -d --report-file parser.output -W
 FLEX_FLAGS				= 
-PROGRAM_NAME 			= trabalho_compiladores
+PROGRAM_NAME 			= etapa5
 
 ########################################
 #			REGRAS
