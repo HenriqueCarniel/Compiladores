@@ -37,16 +37,33 @@ IlocOperation generateInvalidOperation()
 
 // TODO: terminar de implementar as funcionalidades necessárias
 
+void generateCodeByOperation(IlocOperation operation)
+{
+    if (operation.type != OP_INVALID && operation.label != -1)
+    {
+        printf("l%d: ", operation.label);
+    }
+
+    switch (operation.type)
+    {
+        // TODO: terminar de implementar o resto das operações
+
+        case OP_NOP:
+            printf("nop \n");
+            break;
+        
+        default:
+            break;
+    }
+}
+
 void generateCode(IlocOperationList* operationList)
 {
     IlocOperationList* nextOperationList = operationList;
     while(nextOperationList != NULL)
     {
         IlocOperation operation = nextOperationList->operation;
-
-        // TODO: implementar essa função
-        //generateCodeByOperation(operation);
-
+        generateCodeByOperation(operation);
         nextOperationList = nextOperationList->nextOperationList;
     }
 }

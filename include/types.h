@@ -103,8 +103,11 @@ typedef struct SymbolTableStack
 // ===============================
 typedef enum IlocOperationType
 {
-    OP_INVALID
+    OP_INVALID,
+
     // TODO: colocar os outros tipos de operações ILOC
+
+    OP_NOP
 } IlocOperationType;
 
 typedef struct IlocOperation
