@@ -15,5 +15,8 @@ IlocOperationList* createIlocOperationList();
 void addOperationToIlocList(IlocOperationList* operationList, IlocOperation operation);
 void addIlocListToIlocList(IlocOperationList* operationList, IlocOperationList* operationListCopy);
 IlocOperationList* joinOperationLists(IlocOperationList* operationList1, IlocOperationList* operationList2);
+void printOperation(IlocOperation operation);
+void printIlocOperationList(IlocOperationList* operationList);
+void testOperationAndLists();
 
 #endif

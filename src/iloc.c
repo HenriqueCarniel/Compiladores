@@ -71,7 +71,7 @@ void addOperationToIlocList(IlocOperationList* operationList, IlocOperation oper
     if (operationList == NULL) return;
 
     IlocOperationList* lastOperationList = operationList;
-    while (lastOperationList != NULL)
+    while (lastOperationList->nextOperationList != NULL)
     {
         lastOperationList = lastOperationList->nextOperationList;
     }
@@ -100,4 +100,53 @@ IlocOperationList* joinOperationLists(IlocOperationList* operationList1, IlocOpe
     addIlocListToIlocList(operationList2, newOperationList);
 
     return newOperationList;
+}
+
+void printOperation(IlocOperation operation)
+{
+    printf("type: %d \n", operation.type);
+    printf("label: %d \n", operation.label);
+    printf("op1: %d \n", operation.op1);
+    printf("op2: %d \n", operation.op2);
+    printf("out1: %d \n", operation.out1);
+    printf("out2: %d \n", operation.out2);
+    printf("========== \n");
+}
+
+void printIlocOperationList(IlocOperationList* operationList)
+{
+    int i = 0;
+    while (operationList != NULL)
+    {
+        printf("========== OPERAÇÃO %d ==========\n", i);
+        printOperation(operationList->operation);
+        operationList = operationList->nextOperationList;
+        i++;
+    }
+}
+
+void testOperationAndLists()
+{
+    printf("========== TESTANDO OPERAÇÕES ==========\n");
+    IlocOperation operation1 = generateEmptyOperation();
+    printOperation(operation1);
+    IlocOperation operation2 = generateInvalidOperation();
+    printOperation(operation2);
+
+    printf("\n========== TESTANDO LISTAS ==========\n");
+    IlocOperationList* operationList1 = createIlocOperationList();
+    addOperationToIlocList(operationList1, operation1);
+    addOperationToIlocList(operationList1, operation2);
+    printf("\n========== LISTA1 ==========\n");
+    printIlocOperationList(operationList1);
+    IlocOperationList* operationList2 = createIlocOperationList();
+    addOperationToIlocList(operationList2, operation2);
+    addOperationToIlocList(operationList2, operation1);
+    printf("\n========== LISTA2 ==========\n");
+    printIlocOperationList(operationList2);
+
+    printf("\n========== TESTANDO JOIN DE LISTAS ==========\n");
+    IlocOperationList* joinList = createIlocOperationList();
+    joinList = joinOperationLists(operationList1, operationList2);
+    printIlocOperationList(joinList);
 }
