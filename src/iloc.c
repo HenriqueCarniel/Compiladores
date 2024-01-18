@@ -4,7 +4,7 @@
 // GENARATE OPERATIONS
 // ===============================
 
-int generatelabel()
+int generateLabel()
 {
     static int label_count = 1;
     return label_count++;
@@ -35,7 +35,29 @@ IlocOperation generateInvalidOperation()
     return operation;
 }
 
-// TODO: terminar de implementar as funcionalidades necessárias
+IlocOperation generateNopOperation()
+{
+    IlocOperation operation = generateEmptyOperation();
+    operation.type = OP_NOP;
+    return operation;
+}
+
+IlocOperation generateOperation(IlocOperationType type, int op1, int op2, int out1, int out2)
+{
+    IlocOperation operation = generateEmptyOperation();
+    operation.type = type;
+    operation.op1 = op1;
+    operation.op2 = op2;
+    operation.out1 = out1;
+    operation.out2 = out2;
+    return operation;
+}
+
+IlocOperation addLabelToOperation(IlocOperation operation, int label)
+{
+    operation.label = label;   
+    return operation;
+}
 
 void generateCodeByOperation(IlocOperation operation)
 {
@@ -51,7 +73,66 @@ void generateCodeByOperation(IlocOperation operation)
         case OP_NOP:
             printf("nop \n");
             break;
-        
+        case OP_MULT:
+            printf("mult r%d, r%d => r%d \n", operation.op1, operation.op2, operation.out1);
+            break;
+        case OP_DIV:
+            printf("div r%d, r%d => r%d \n", operation.op1, operation.op2, operation.out1);
+            break;
+        case OP_NEG:
+            printf("rsubI r%d, 0 => r%d \n", operation.op1, operation.out1);
+            break;
+        case OP_SUB:
+            printf("sub r%d, r%d => r%d \n", operation.op1, operation.op2, operation.out1);
+            break;
+        case OP_ADD:
+            printf("add r%d, r%d => r%d \n", operation.op1, operation.op2, operation.out1);
+            break;
+        case OP_AND:
+            printf("and r%d, r%d => r%d \n", operation.op1, operation.op2, operation.out1);
+            break;
+        case OP_OR:
+            printf("or r%d, r%d => r%d \n", operation.op1, operation.op2, operation.out1);
+            break;
+        case OP_CMP_GE:
+            printf("cmp_GE r%d, r%d -> r%d \n", operation.op1, operation.op2, operation.out1);
+            break;
+        case OP_CMP_LE:
+            printf("cmp_LE r%d, r%d -> r%d \n", operation.op1, operation.op2, operation.out1);
+            break;
+        case OP_CMP_GT:
+            printf("cmp_GT r%d, r%d -> r%d \n", operation.op1, operation.op2, operation.out1);
+            break;
+        case OP_CMP_LT:
+            printf("cmp_LT r%d, r%d -> r%d \n", operation.op1, operation.op2, operation.out1);
+            break;
+        case OP_CMP_NE:
+            printf("cmp_NE r%d, r%d -> r%d \n", operation.op1, operation.op2, operation.out1);
+            break;
+        case OP_CMP_EQ:
+            printf("cmp_EQ r%d, r%d -> r%d \n", operation.op1, operation.op2, operation.out1);
+            break;
+        case OP_CBR:
+            printf("cbr r%d -> l%d, l%d \n", operation.op1, operation.out1, operation.out2);
+            break;
+        case OP_JUMPI:
+            printf("jumpI -> l%d \n", operation.op1);
+            break;
+        case OP_LOADI:
+            printf("loadI %d => r%d \n", operation.op1, operation.out1);
+            break;
+        case OP_LOADAI_GLOBAL:
+            printf("loadAI rbss, %d => r%d \n", operation.op1, operation.out1);
+            break;
+        case OP_LOADAI_LOCAL:
+            printf("loadAI r0, %d => r%d \n", operation.op1, operation.out1);
+            break;
+        case OP_STOREAI_GLOBAL:
+            printf("storeAI r%d => rbss, %d \n", operation.op1, operation.out1);
+            break;
+        case OP_STOREAI_LOCAL:
+            printf("storeAI r%d => r0, %d \n", operation.op1, operation.out1);
+            break;
         default:
             break;
     }
@@ -81,6 +162,21 @@ IlocOperationList* createIlocOperationList()
     operationList->operation = generateInvalidOperation();
     operationList->nextOperationList = NULL;
     return operationList;
+}
+
+IlocOperationList* createListFromOtherList(IlocOperationList* operationList)
+{
+    IlocOperationList* newOperationList = createIlocOperationList();
+
+    if (!newOperationList) return NULL;
+
+    IlocOperationList* operationListCopy = operationList;
+    while(operationListCopy != NULL)
+    {
+        addOperationToIlocList(newOperationList, operationListCopy->operation);
+        operationListCopy = operationListCopy->nextOperationList;
+    }
+    return newOperationList;
 }
 
 void addOperationToIlocList(IlocOperationList* operationList, IlocOperation operation)
@@ -161,6 +257,8 @@ void testOperationAndLists()
     addOperationToIlocList(operationList2, operation1);
     printf("\n========== LISTA2 ==========\n");
     printIlocOperationList(operationList2);
+    printf("\n========== LISTA3 [COPIA DA 2] ==========\n");
+    printIlocOperationList(createListFromOtherList(operationList2));
 
     printf("\n========== TESTANDO JOIN DE LISTAS ==========\n");
     IlocOperationList* joinList = createIlocOperationList();

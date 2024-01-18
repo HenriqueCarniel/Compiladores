@@ -32,6 +32,8 @@ void initGlobalSymbolStack()
 {
     globalSymbolTableStack = createSymbolTableStack();
     globalSymbolTableStack->symbolTable = createSymbolTable();
+    globalSymbolTableStack->isGlobal = 1;
+    globalSymbolTableStack->lastPosition = 0;
 }
 
 void addTableToGlobalStack(SymbolTable* symbolTable)

@@ -5,13 +5,16 @@
 #include <stdlib.h>
 #include "types.h"
 
-int generatelabel();
+int generateLabel();
 int generateRegister();
 IlocOperation generateEmptyOperation();
 IlocOperation generateInvalidOperation();
-// TODO: terminar de implementar as funcionalidades necessárias
+IlocOperation generateNopOperation();
+IlocOperation generateOperation(IlocOperationType type, int op1, int op2, int out1, int out2);
+IlocOperation addLabelToOperation(IlocOperation operation, int label);
 void generateCode(IlocOperationList* operationList);
 IlocOperationList* createIlocOperationList();
+IlocOperationList* createListFromOtherList(IlocOperationList* operationList);
 void addOperationToIlocList(IlocOperationList* operationList, IlocOperation operation);
 void addIlocListToIlocList(IlocOperationList* operationList, IlocOperationList* operationListCopy);
 IlocOperationList* joinOperationLists(IlocOperationList* operationList1, IlocOperationList* operationList2);

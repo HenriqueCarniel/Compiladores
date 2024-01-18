@@ -10,6 +10,10 @@ Node* createNodeFromLexicalValue(LexicalValue lexicalValue, DataType dataType)
     node->brother = NULL;
     node->child = NULL;
 
+    ///////////////////////// ETAPA 5 /////////////////////////
+    node->operationList = NULL;
+    node->outRegister = -1;
+
     return node;
 }
 
@@ -25,6 +29,10 @@ Node* createNodeFromLabel(char* label, DataType dataType)
     node->parent = NULL;
     node->brother = NULL;
     node->child = NULL;
+
+    ///////////////////////// ETAPA 5 /////////////////////////
+    node->operationList = NULL;
+    node->outRegister = -1;
 
     return node;
 }

@@ -44,6 +44,11 @@ typedef struct Node
     struct Node* parent;
     struct Node* brother;
     struct Node* child;
+
+    ///////////////////////// ETAPA 5 /////////////////////////
+    struct IlocOperationList* operationList;
+    int outRegister;
+    int lastPosition;
 } Node;
 
 // ===============================
@@ -66,6 +71,10 @@ typedef struct SymbolTableEntryValue
     SymbolNature symbolNature;
     DataType dataType;
     LexicalValue lexicalValue;
+
+    ///////////////////////// ETAPA 5 /////////////////////////
+    int isGlobal;
+    int position;
 } SymbolTableEntryValue;
 
 // Uma entrada numa tabela de símbolos. Lista encadeada
@@ -89,13 +98,20 @@ typedef struct SymbolTable
 {
     int n_buckets;
     SymbolTableBucket* buckets;
+
+    ///////////////////////// ETAPA 5 /////////////////////////
+    int lastPosition;
 } SymbolTable;
 
 // Um elemento da pilha de tabelas de símbolos
 typedef struct SymbolTableStack
 {
     SymbolTable* symbolTable;
-    struct SymbolTableStack* nextItem;    
+    struct SymbolTableStack* nextItem;
+
+    ///////////////////////// ETAPA 5 /////////////////////////
+    int isGlobal;
+    int lastPosition;
 } SymbolTableStack;
 
 // ===============================
@@ -104,10 +120,31 @@ typedef struct SymbolTableStack
 typedef enum IlocOperationType
 {
     OP_INVALID,
+    OP_NOP,
+    OP_MULT,
+    OP_DIV,
+    OP_NEG,
+    OP_SUB,
+    OP_ADD,
+    OP_AND,
+    OP_OR,
+    OP_CMP_GE,
+    OP_CMP_LE,
+    OP_CMP_GT,
+    OP_CMP_LT,
+    OP_CMP_NE,
+    OP_CMP_EQ,
+    OP_CBR,
+    OP_JUMPI,
+    OP_LOADI,
+    OP_LOADAI_GLOBAL,
+    OP_LOADAI_LOCAL,
+    
+    OP_STOREAI_GLOBAL,
+    OP_STOREAI_LOCAL
 
     // TODO: colocar os outros tipos de operações ILOC
 
-    OP_NOP
 } IlocOperationType;
 
 typedef struct IlocOperation
