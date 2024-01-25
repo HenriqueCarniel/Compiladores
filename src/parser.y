@@ -353,6 +353,7 @@ parameters_list: type TK_IDENTIFICADOR
     );
     addSymbolValueToGlobalTableStack(value);
 
+    // TODO: atualizar $$->position
 
     freeLexicalValue($2);
 };
@@ -368,6 +369,8 @@ parameters_list: type TK_IDENTIFICADOR ',' parameters_list
         $2
     );
     addSymbolValueToGlobalTableStack(value);
+
+    // TODO: atualizar $$->position
 
     freeLexicalValue($2);
 };
@@ -393,6 +396,7 @@ command_block: command_block_begin command_block_end
 command_block: command_block_begin simple_command_list command_block_end
 {
     $$ = $2;
+    // TODO: atualizar por aqui o $$->lastPosition
 };
 
 simple_command_list: command
@@ -406,6 +410,7 @@ simple_command_list: command simple_command_list
     {
         $$ = $1;
         addChild($$, $2);
+        addIlocListToIlocList($1->operationList, $2->operationList);
     }
     else
     {
@@ -538,6 +543,41 @@ flow_control_command: TK_PR_IF '(' expression ')' '{' simple_command_list '}'
     $$ = createNodeFromLabel($1, inferTypeFromNode($3));
     addChild($$, $3);
     addChild($$, $6);
+
+    int registerExpression = $3->outRegister;
+    int registerFalse = generateRegister();
+    int registerCmp = generateRegister();
+
+    int labelTrue = generateLabel();
+    int labelFalse = generateLabel();
+
+    IlocOperationList* operationList = createIlocOperationList();
+
+    // loadI 0 => registerFalse
+    IlocOperation operationLoadFalse = generateOperation(OP_LOADI, 0, -1, registerFalse, -1);
+    addOperationToIlocList(operationList, operationLoadFalse);
+
+    // cmp_NE registerExpression, registerFalse -> registerCmp
+    IlocOperation operationCmpFalse = generateOperation(OP_CMP_NE, registerExpression, registerFalse, registerCmp, -1);
+    addOperationToIlocList(operationList, operationCmpFalse);
+
+    // cbr registerCmp -> labelTrue, labelFalse
+    IlocOperation operationCbr = generateOperation(OP_CBR, registerCmp, -1, labelTrue, labelFalse);
+    addOperationToIlocList(operationList, operationCbr);
+
+    // "labelTrue": nop
+    // -- CÓDIGO DO BLOCO DE COMANDOS --
+    IlocOperation operationNopTrue = generateNopOperation();
+    operationNopTrue = addLabelToOperation(operationNopTrue, labelTrue);
+    addOperationToIlocList(operationList, operationNopTrue);
+    addIlocListToIlocList(operationList, $6->operationList);
+
+    // "labelFalse": nop
+    IlocOperation operationNopFalse = generateNopOperation();
+    operationNopFalse = addLabelToOperation(operationNopFalse, labelFalse);
+    addOperationToIlocList(operationList, operationNopFalse);
+
+    $$->operationList = operationList;
 }; 
 
 flow_control_command: TK_PR_IF '(' expression ')' '{' simple_command_list '}' TK_PR_ELSE '{' simple_command_list '}'
@@ -546,6 +586,52 @@ flow_control_command: TK_PR_IF '(' expression ')' '{' simple_command_list '}' TK
     addChild($$, $3);
     addChild($$, $6);
     addChild($$, $10);
+
+    int registerExpression = $3->outRegister;
+    int registerFalse = generateRegister();
+    int registerCmp = generateRegister();
+
+    int labelTrue = generateLabel();
+    int labelFalse = generateLabel();
+    int labelEnd = generateLabel();
+
+    IlocOperationList* operationList = createIlocOperationList();
+
+    // loadI 0 => registerFalse
+    IlocOperation operationLoadFalse = generateOperation(OP_LOADI, 0, -1, registerFalse, -1);
+    addOperationToIlocList(operationList, operationLoadFalse);
+
+    // cmp_NE registerExpression, registerFalse -> registerCmp
+    IlocOperation operationCmpFalse = generateOperation(OP_CMP_NE, registerExpression, registerFalse, registerCmp, -1);
+    addOperationToIlocList(operationList, operationCmpFalse);
+
+    // cbr registerCmp -> labelTrue, labelFalse
+    IlocOperation operationCbr = generateOperation(OP_CBR, registerCmp, -1, labelTrue, labelFalse);
+    addOperationToIlocList(operationList, operationCbr);
+
+    // "labelTrue": nop
+    // -- CÓDIGO DO BLOCO DE COMANDOS VERDADEIRO --
+    // jumpI -> labelEnd
+    IlocOperation operationNopTrue = generateNopOperation();
+    operationNopTrue = addLabelToOperation(operationNopTrue, labelTrue);
+    addOperationToIlocList(operationList, operationNopTrue);
+    addIlocListToIlocList(operationList, $6->operationList);
+    IlocOperation operationJumpAfterCode = generateOperation(OP_JUMPI, labelEnd, -1, -1, -1);
+    addOperationToIlocList(operationList, operationJumpAfterCode);
+
+    // "labelFalse": nop
+    // -- CÓDIGO DO BLOCO DE COMANDOS FALSO --
+    IlocOperation operationNopFalse = generateNopOperation();
+    operationNopFalse = addLabelToOperation(operationNopFalse, labelFalse);
+    addOperationToIlocList(operationList, operationNopFalse);
+    addIlocListToIlocList(operationList, $10->operationList);
+
+    // "labelEnd": nop
+    IlocOperation operationNopEnd = generateNopOperation();
+    operationNopEnd = addLabelToOperation(operationNopEnd, labelEnd);
+    addOperationToIlocList(operationList, operationNopEnd);
+
+    $$->operationList = operationList;
 };
 
 flow_control_command: TK_PR_WHILE '(' expression ')' '{' simple_command_list '}'
@@ -553,6 +639,53 @@ flow_control_command: TK_PR_WHILE '(' expression ')' '{' simple_command_list '}'
     $$ = createNodeFromLabel($1, inferTypeFromNode($3));
     addChild($$, $3);
     addChild($$, $6);
+
+    int registerExpression = $3->outRegister;
+    int registerFalse = generateRegister();
+    int registerCmp = generateRegister();
+
+    int labelComparation = generateLabel();
+    int labelTrue = generateLabel();
+    int labelFalse = generateLabel();
+
+    IlocOperationList* operationList = createIlocOperationList();
+
+    // loadI 0 => registerFalse
+    IlocOperation operationLoadFalse = generateOperation(OP_LOADI, 0, -1, registerFalse, -1);
+    addOperationToIlocList(operationList, operationLoadFalse);
+
+    // "labelComparation": nop
+    IlocOperation operationNopComparation = generateNopOperation();
+    operationNopComparation = addLabelToOperation(operationNopComparation, labelComparation);
+    addOperationToIlocList(operationList, operationNopComparation);
+
+    // -- GERA VALOR DO CONDICIONAL E SALVA EM registerExpression --
+    addIlocListToIlocList(operationList, $3->operationList);
+
+    // cmp_NE registerExpression, registerFalse -> registerCmp
+    // cbr registerCmp -> labelTrue, labelFalse
+    IlocOperation operationCmpFalse = generateOperation(OP_CMP_NE, registerExpression, registerFalse, registerCmp, -1);
+    addOperationToIlocList(operationList, operationCmpFalse);
+    IlocOperation operationCbr = generateOperation(OP_CBR, registerCmp, -1, labelTrue, labelFalse);
+    addOperationToIlocList(operationList, operationCbr);
+
+    // "labelTrue": nop
+    // -- CÓDIGO DO BLOCO DE COMANDOS --
+    IlocOperation operationNopTrue = generateNopOperation();
+    operationNopTrue = addLabelToOperation(operationNopTrue, labelTrue);
+    addOperationToIlocList(operationList, operationNopTrue);
+    addIlocListToIlocList(operationList, $6->operationList);
+
+    // jumpI -> labelComparation
+    IlocOperation operationJumpAfterCode = generateOperation(OP_JUMPI, labelComparation, -1, -1, -1);
+    addOperationToIlocList(operationList, operationJumpAfterCode);
+
+    // "labelFalse": nop
+    IlocOperation operationNopFalse = generateNopOperation();
+    operationNopFalse = addLabelToOperation(operationNopFalse, labelFalse);
+    addOperationToIlocList(operationList, operationNopFalse);
+
+    $$->operationList = operationList;
 };
 
 
