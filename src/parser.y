@@ -99,16 +99,19 @@ int currentRFPoffset = 0;
 %%
 
 // ======================== PROGRAMA ========================
-program: elements_list
-{
-    $$ = $1;
-    arvore = $$;
-};
 
 program: %empty 
 {
     $$ = NULL;
     arvore = NULL;
+};
+
+program: elements_list
+{
+    $$ = $1;
+    arvore = $$;
+
+    // TODO: necessário implementar algo por aq?
 };
 
 
@@ -117,6 +120,7 @@ elements_list: functions elements_list
 {
     $$ = $1;
     addChild($$, $2);
+    addIlocListToIlocList($$->operationList, $2->operationList);
 };
 
 elements_list: global_variables elements_list
@@ -220,43 +224,17 @@ literal: TK_LIT_TRUE
 
 
 // ======================== VARIÁVEIS GLOBAIS ========================
-/*
-
-    Exemplo de redução:
-    T=type
-    IL=identifiers_list
-
-    EMPILHA INT
-    REDUZ T->INT
-    EMPILHA X1
-    EMPILHA ,
-    EMPILHA X2
-    EMPILHA ,
-    EMPILHA X3
-    REDUZ IL->X3
-    REDUZ IL->X2, IL
-    REDUZ IL->X1, IL
-
-                                |   int x1, x2, x3;
-    1ª redução: T->int          |   T x1, x2, x3
-    2ª redução: IL->x3          |   T x1, x2, IL
-    3ª redução: IL->x2,IL       |   T x1, IL
-    4ª redução: IL->x1,IL       |   T IL
-    5ª redução: GV-> T IL       |   GV
-
-    Logo, tipo é reduzido primeiro
-
-*/
-
 
 global_variables: type identifiers_list ';'
 {
     $$ = NULL;
-    removeNode($2);
+
+    // TODO: comentei essa linha de baixo meio SUS
+    //removeNode($2);
     
     // Não tem mais um tipo sendo declarado
     declaredType = DATA_TYPE_UNDECLARED;
-    };
+};
 
 identifiers_list: TK_IDENTIFICADOR
 {
@@ -285,7 +263,7 @@ identifiers_list: TK_IDENTIFICADOR ',' identifiers_list
     };
 
 
-
+// TODO: implementar toda essa parte de funções
 // ======================== FUNÇÕES ========================
 functions: header body
 {
@@ -320,17 +298,6 @@ body: command_block
     $$ = $1;
 };
 
-
-
-// Lista de parâmetros
-
-// O início de uma lista de parâmetros de uma função
-// leva a criação de um novo escopo onde estarão os argumentos
-function_argument_begin: '('
-{
-    addTableToGlobalStack(createSymbolTable());
-}
-
 function_arguments: function_argument_begin ')'
 {
     $$ = NULL;
@@ -340,6 +307,13 @@ function_arguments: function_argument_begin parameters_list ')'
 {
     $$ = NULL;
 };
+
+// O início de uma lista de parâmetros de uma função
+// leva a criação de um novo escopo onde estarão os argumentos
+function_argument_begin: '('
+{
+    addTableToGlobalStack(createSymbolTable());
+}
 
 parameters_list: type TK_IDENTIFICADOR
 {
@@ -378,15 +352,6 @@ parameters_list: type TK_IDENTIFICADOR ',' parameters_list
 
 
 // ======================== BLOCO DE COMANDO ========================
-command_block_begin: '{'
-{
-    addTableToGlobalStack(createSymbolTable());
-};
-
-command_block_end: '}'
-{
-    popGlobalStack();
-};
 
 command_block: command_block_begin command_block_end
 {
@@ -397,6 +362,16 @@ command_block: command_block_begin simple_command_list command_block_end
 {
     $$ = $2;
     // TODO: atualizar por aqui o $$->lastPosition
+};
+
+command_block_begin: '{'
+{
+    addTableToGlobalStack(createSymbolTable());
+};
+
+command_block_end: '}'
+{
+    popGlobalStack();
 };
 
 simple_command_list: command
@@ -551,7 +526,7 @@ flow_control_command: TK_PR_IF '(' expression ')' '{' simple_command_list '}'
     int labelTrue = generateLabel();
     int labelFalse = generateLabel();
 
-    IlocOperationList* operationList = createIlocOperationList();
+    IlocOperationList* operationList = createListFromOtherList($3->operationList);
 
     // loadI 0 => registerFalse
     IlocOperation operationLoadFalse = generateOperation(OP_LOADI, 0, -1, registerFalse, -1);
@@ -578,7 +553,7 @@ flow_control_command: TK_PR_IF '(' expression ')' '{' simple_command_list '}'
     addOperationToIlocList(operationList, operationNopFalse);
 
     $$->operationList = operationList;
-}; 
+};
 
 flow_control_command: TK_PR_IF '(' expression ')' '{' simple_command_list '}' TK_PR_ELSE '{' simple_command_list '}'
 {
@@ -595,7 +570,7 @@ flow_control_command: TK_PR_IF '(' expression ')' '{' simple_command_list '}' TK
     int labelFalse = generateLabel();
     int labelEnd = generateLabel();
 
-    IlocOperationList* operationList = createIlocOperationList();
+    IlocOperationList* operationList = createListFromOtherList($3->operationList);
 
     // loadI 0 => registerFalse
     IlocOperation operationLoadFalse = generateOperation(OP_LOADI, 0, -1, registerFalse, -1);
@@ -694,6 +669,7 @@ flow_control_command: TK_PR_WHILE '(' expression ')' '{' simple_command_list '}'
 expression: expression_grade_eight
 {
     $$ = $1;
+    printf("valor: %s\n", $1->lexicalValue.label);
 };
 
 
@@ -721,6 +697,8 @@ expression_grade_eight: expression_grade_eight TK_OC_OR expression_grade_seven
 expression_grade_eight: expression_grade_seven
 {
     $$ = $1;
+
+    printf("reduz pra 8\n");
 };
 
 
@@ -748,6 +726,8 @@ expression_grade_seven: expression_grade_seven TK_OC_AND expression_grade_six
 expression_grade_seven: expression_grade_six
 {
     $$ = $1;
+
+    printf("reduz pra 7\n");
 };
 
 
@@ -757,6 +737,8 @@ expression_grade_six: expression_grade_six TK_OC_EQ expression_grade_five
     $$ = createNodeFromLabel($2, inferTypeFromNodes($1, $3));
     addChild($$, $1);
     addChild($$, $3);
+
+    printf("cu");
 
     ///////////////////////// ETAPA 5 /////////////////////////
     IlocOperationList* operationList = joinOperationLists($1->operationList, $3->operationList);
@@ -843,6 +825,8 @@ expression_grade_six: expression_grade_six TK_OC_NE expression_grade_five
 expression_grade_six: expression_grade_five
 {
     $$ = $1;
+
+    printf("reduz pra 6\n");
 };
 
 
@@ -1026,6 +1010,8 @@ expression_grade_five: expression_grade_five TK_OC_GE expression_grade_four
 expression_grade_five: expression_grade_four
 {
     $$ = $1;
+
+    printf("reduz pra 5\n");
 };
 
 
@@ -1073,6 +1059,8 @@ expression_grade_four: expression_grade_four '-' expression_grade_three
 expression_grade_four: expression_grade_three
 {
     $$ = $1;
+
+    printf("reduz pra 4\n");
 };
 
 
@@ -1127,6 +1115,8 @@ expression_grade_three: expression_grade_three '%' expression_grade_two
 expression_grade_three: expression_grade_two
 {
     $$ = $1;
+
+    printf("reduz pra 3\n");
 };
 
 
@@ -1161,6 +1151,8 @@ expression_grade_two: '!' expression_grade_one
 expression_grade_two: expression_grade_one
 {
     $$ = $1;
+
+    printf("reduz pra 2\n");
 };
 
 

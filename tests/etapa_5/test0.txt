@@ -1,0 +1,31 @@
+int teste1, teste2, teste3;
+
+(float value1, bool b, int value2) >= bool! function
+{
+    int new_value;
+
+    if (b)
+    {
+        new_value = value1 * value2;
+    }
+    else
+    {
+        new_value = value1 / value2;
+    };
+
+    bool b1, b2, b3, b4, b5;
+
+    b = b1 + b2 + (b3 * (b4 / b5));
+    
+    {};
+    {{{{};};};};
+
+    function(b1, b2, b3, b4);
+
+    // while(b) {};
+    // while(b==b) {{};};
+
+    if (value2){ value1 = value2; };
+
+    return new_value;
+}
