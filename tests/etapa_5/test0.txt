@@ -4,9 +4,10 @@ int teste1, teste2, teste3;
 {
     int new_value;
 
-    if (b)
+    if (b == value1)
     {
         new_value = value1 * value2;
+        b = 8;
     }
     else
     {

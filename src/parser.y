@@ -12,7 +12,7 @@ Jose Henrique Lima Marques */
 int yylex(void);
 void yyerror (char const *mensagem);
 int get_line_number();
-extern void *arvore;
+extern Node *arvore;
 
 // O tipo atualmente declarado
 DataType declaredType = DATA_TYPE_UNDECLARED;
@@ -112,6 +112,8 @@ program: elements_list
     arvore = $$;
 
     // TODO: necessário implementar algo por aq?
+    //generateCode($$->operationList);
+    //printf("\n\n");
 };
 
 
@@ -275,6 +277,13 @@ functions: header body
     // tendo somente o frame global
     popGlobalStack();
 
+    if ($2)
+    {
+        $$->operationList = $2->operationList;
+    }
+
+    //generateCode($$->operationList);
+    //printf("\n\n");
 };
 
 header: function_arguments TK_OC_GE type '!' TK_IDENTIFICADOR
@@ -305,7 +314,7 @@ function_arguments: function_argument_begin ')'
 
 function_arguments: function_argument_begin parameters_list ')'
 {
-    $$ = NULL;
+    $$ = $2;
 };
 
 // O início de uma lista de parâmetros de uma função
@@ -466,7 +475,6 @@ attribution_command: TK_IDENTIFICADOR '=' expression
 
     addOperationToIlocList(operationList, operation);
 
-    $$->outRegister = r1;
     $$->operationList = operationList;
 };
 
@@ -488,6 +496,8 @@ function_call: TK_IDENTIFICADOR '(' expression_list ')'
 
     $$ = createNodeToFunctionCall($1, type);
     addChild($$, $3);
+
+    $$->operationList = $3->operationList;
 };
 
 expression_list: expression
@@ -499,6 +509,9 @@ expression_list: expression ',' expression_list
 {
     $$ = $1;
     addChild($$, $3);
+
+    IlocOperationList* operationList = joinOperationLists($1->operationList, $3->operationList);
+    $$->operationList = operationList;
 };
 
 
@@ -513,11 +526,11 @@ return_command: TK_PR_RETURN expression
 
 
 // Comando de controle de fluxo
-flow_control_command: TK_PR_IF '(' expression ')' '{' simple_command_list '}'
+flow_control_command: TK_PR_IF '(' expression ')' command_block
 {
     $$ = createNodeFromLabel($1, inferTypeFromNode($3));
     addChild($$, $3);
-    addChild($$, $6);
+    addChild($$, $5);
 
     int registerExpression = $3->outRegister;
     int registerFalse = generateRegister();
@@ -545,7 +558,7 @@ flow_control_command: TK_PR_IF '(' expression ')' '{' simple_command_list '}'
     IlocOperation operationNopTrue = generateNopOperation();
     operationNopTrue = addLabelToOperation(operationNopTrue, labelTrue);
     addOperationToIlocList(operationList, operationNopTrue);
-    addIlocListToIlocList(operationList, $6->operationList);
+    addIlocListToIlocList(operationList, $5->operationList);
 
     // "labelFalse": nop
     IlocOperation operationNopFalse = generateNopOperation();
@@ -555,12 +568,12 @@ flow_control_command: TK_PR_IF '(' expression ')' '{' simple_command_list '}'
     $$->operationList = operationList;
 };
 
-flow_control_command: TK_PR_IF '(' expression ')' '{' simple_command_list '}' TK_PR_ELSE '{' simple_command_list '}'
+flow_control_command: TK_PR_IF '(' expression ')' command_block TK_PR_ELSE command_block
 {
     $$ = createNodeFromLabel($1, inferTypeFromNode($3));
     addChild($$, $3);
-    addChild($$, $6);
-    addChild($$, $10);
+    addChild($$, $5);
+    addChild($$, $7);
 
     int registerExpression = $3->outRegister;
     int registerFalse = generateRegister();
@@ -590,7 +603,7 @@ flow_control_command: TK_PR_IF '(' expression ')' '{' simple_command_list '}' TK
     IlocOperation operationNopTrue = generateNopOperation();
     operationNopTrue = addLabelToOperation(operationNopTrue, labelTrue);
     addOperationToIlocList(operationList, operationNopTrue);
-    addIlocListToIlocList(operationList, $6->operationList);
+    addIlocListToIlocList(operationList, $5->operationList);
     IlocOperation operationJumpAfterCode = generateOperation(OP_JUMPI, labelEnd, -1, -1, -1);
     addOperationToIlocList(operationList, operationJumpAfterCode);
 
@@ -599,7 +612,7 @@ flow_control_command: TK_PR_IF '(' expression ')' '{' simple_command_list '}' TK
     IlocOperation operationNopFalse = generateNopOperation();
     operationNopFalse = addLabelToOperation(operationNopFalse, labelFalse);
     addOperationToIlocList(operationList, operationNopFalse);
-    addIlocListToIlocList(operationList, $10->operationList);
+    addIlocListToIlocList(operationList, $7->operationList);
 
     // "labelEnd": nop
     IlocOperation operationNopEnd = generateNopOperation();
@@ -609,11 +622,11 @@ flow_control_command: TK_PR_IF '(' expression ')' '{' simple_command_list '}' TK
     $$->operationList = operationList;
 };
 
-flow_control_command: TK_PR_WHILE '(' expression ')' '{' simple_command_list '}'
+flow_control_command: TK_PR_WHILE '(' expression ')' command_block
 {
     $$ = createNodeFromLabel($1, inferTypeFromNode($3));
     addChild($$, $3);
-    addChild($$, $6);
+    addChild($$, $5);
 
     int registerExpression = $3->outRegister;
     int registerFalse = generateRegister();
@@ -649,7 +662,7 @@ flow_control_command: TK_PR_WHILE '(' expression ')' '{' simple_command_list '}'
     IlocOperation operationNopTrue = generateNopOperation();
     operationNopTrue = addLabelToOperation(operationNopTrue, labelTrue);
     addOperationToIlocList(operationList, operationNopTrue);
-    addIlocListToIlocList(operationList, $6->operationList);
+    addIlocListToIlocList(operationList, $5->operationList);
 
     // jumpI -> labelComparation
     IlocOperation operationJumpAfterCode = generateOperation(OP_JUMPI, labelComparation, -1, -1, -1);
@@ -669,7 +682,6 @@ flow_control_command: TK_PR_WHILE '(' expression ')' '{' simple_command_list '}'
 expression: expression_grade_eight
 {
     $$ = $1;
-    printf("valor: %s\n", $1->lexicalValue.label);
 };
 
 
@@ -697,8 +709,6 @@ expression_grade_eight: expression_grade_eight TK_OC_OR expression_grade_seven
 expression_grade_eight: expression_grade_seven
 {
     $$ = $1;
-
-    printf("reduz pra 8\n");
 };
 
 
@@ -726,8 +736,6 @@ expression_grade_seven: expression_grade_seven TK_OC_AND expression_grade_six
 expression_grade_seven: expression_grade_six
 {
     $$ = $1;
-
-    printf("reduz pra 7\n");
 };
 
 
@@ -737,8 +745,6 @@ expression_grade_six: expression_grade_six TK_OC_EQ expression_grade_five
     $$ = createNodeFromLabel($2, inferTypeFromNodes($1, $3));
     addChild($$, $1);
     addChild($$, $3);
-
-    printf("cu");
 
     ///////////////////////// ETAPA 5 /////////////////////////
     IlocOperationList* operationList = joinOperationLists($1->operationList, $3->operationList);
@@ -825,8 +831,6 @@ expression_grade_six: expression_grade_six TK_OC_NE expression_grade_five
 expression_grade_six: expression_grade_five
 {
     $$ = $1;
-
-    printf("reduz pra 6\n");
 };
 
 
@@ -1010,8 +1014,6 @@ expression_grade_five: expression_grade_five TK_OC_GE expression_grade_four
 expression_grade_five: expression_grade_four
 {
     $$ = $1;
-
-    printf("reduz pra 5\n");
 };
 
 
@@ -1059,8 +1061,6 @@ expression_grade_four: expression_grade_four '-' expression_grade_three
 expression_grade_four: expression_grade_three
 {
     $$ = $1;
-
-    printf("reduz pra 4\n");
 };
 
 
@@ -1115,8 +1115,6 @@ expression_grade_three: expression_grade_three '%' expression_grade_two
 expression_grade_three: expression_grade_two
 {
     $$ = $1;
-
-    printf("reduz pra 3\n");
 };
 
 
@@ -1151,8 +1149,6 @@ expression_grade_two: '!' expression_grade_one
 expression_grade_two: expression_grade_one
 {
     $$ = $1;
-
-    printf("reduz pra 2\n");
 };
 
 
