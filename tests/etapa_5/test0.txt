@@ -11,9 +11,11 @@ int teste1, teste2, teste3;
     }
     else
     {
+        int sla;
         new_value = value1 / value2;
     };
 
+    int sla; // isso daqui, de acordo com a especificação do professor, deveria dar erro, arrumar dps
     bool b1, b2, b3, b4, b5;
 
     b = b1 + b2 + (b3 * (b4 / b5));
@@ -23,8 +25,8 @@ int teste1, teste2, teste3;
 
     function(b1, b2, b3, b4);
 
-    // while(b) {};
-    // while(b==b) {{};};
+    while(b) {};
+    while(b==b) {{};};
 
     if (value2){ value1 = value2; };
 

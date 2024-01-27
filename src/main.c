@@ -31,8 +31,8 @@ int main (int argc, char **argv)
 
   yylex_destroy();
 
-  printf("Final stack state:\n");
-  printGlobalTableStack(100);
+  //printf("Final stack state:\n");
+  //printGlobalTableStack(100);
 
   freeSymbolTableStack(globalSymbolTableStack);
 

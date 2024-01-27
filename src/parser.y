@@ -78,6 +78,7 @@ int currentRFPoffset = 0;
 %type<Node> function_arguments
 %type<Node> parameters_list
 %type<Node> command_block
+%type<Node> command_block_flow_control_command
 %type<Node> simple_command_list
 %type<Node> command
 %type<Node> variable_declaration
@@ -112,8 +113,6 @@ program: elements_list
     arvore = $$;
 
     // TODO: necessário implementar algo por aq?
-    //generateCode($$->operationList);
-    //printf("\n\n");
 };
 
 
@@ -281,9 +280,6 @@ functions: header body
     {
         $$->operationList = $2->operationList;
     }
-
-    //generateCode($$->operationList);
-    //printf("\n\n");
 };
 
 header: function_arguments TK_OC_GE type '!' TK_IDENTIFICADOR
@@ -380,8 +376,24 @@ command_block_begin: '{'
 
 command_block_end: '}'
 {
+    //printf("Final stack state:\n");
+    //printGlobalTableStack(100);
+    //printf("\n\n");
+
     popGlobalStack();
 };
+
+// Isso foi feito pois os blocos de comandos de fluxo de controle não geram um novo escopo,
+//de acordo com a especificação dada pelo professor
+command_block_flow_control_command: '{' '}'
+{
+    $$ = NULL;
+}
+
+command_block_flow_control_command: '{' simple_command_list '}'
+{
+    $$ = $2;
+}
 
 simple_command_list: command
 {
@@ -526,7 +538,7 @@ return_command: TK_PR_RETURN expression
 
 
 // Comando de controle de fluxo
-flow_control_command: TK_PR_IF '(' expression ')' command_block
+flow_control_command: TK_PR_IF '(' expression ')' command_block_flow_control_command
 {
     $$ = createNodeFromLabel($1, inferTypeFromNode($3));
     addChild($$, $3);
@@ -554,11 +566,15 @@ flow_control_command: TK_PR_IF '(' expression ')' command_block
     addOperationToIlocList(operationList, operationCbr);
 
     // "labelTrue": nop
-    // -- CÓDIGO DO BLOCO DE COMANDOS --
     IlocOperation operationNopTrue = generateNopOperation();
     operationNopTrue = addLabelToOperation(operationNopTrue, labelTrue);
     addOperationToIlocList(operationList, operationNopTrue);
-    addIlocListToIlocList(operationList, $5->operationList);
+
+    // -- CÓDIGO DO BLOCO DE COMANDOS --
+    if ($5)
+    {
+        addIlocListToIlocList(operationList, $5->operationList);
+    }
 
     // "labelFalse": nop
     IlocOperation operationNopFalse = generateNopOperation();
@@ -568,7 +584,7 @@ flow_control_command: TK_PR_IF '(' expression ')' command_block
     $$->operationList = operationList;
 };
 
-flow_control_command: TK_PR_IF '(' expression ')' command_block TK_PR_ELSE command_block
+flow_control_command: TK_PR_IF '(' expression ')' command_block_flow_control_command TK_PR_ELSE command_block_flow_control_command
 {
     $$ = createNodeFromLabel($1, inferTypeFromNode($3));
     addChild($$, $3);
@@ -598,21 +614,29 @@ flow_control_command: TK_PR_IF '(' expression ')' command_block TK_PR_ELSE comma
     addOperationToIlocList(operationList, operationCbr);
 
     // "labelTrue": nop
-    // -- CÓDIGO DO BLOCO DE COMANDOS VERDADEIRO --
-    // jumpI -> labelEnd
     IlocOperation operationNopTrue = generateNopOperation();
     operationNopTrue = addLabelToOperation(operationNopTrue, labelTrue);
     addOperationToIlocList(operationList, operationNopTrue);
-    addIlocListToIlocList(operationList, $5->operationList);
+
+    // -- CÓDIGO DO BLOCO DE COMANDOS VERDADEIRO --
+    // jumpI -> labelEnd
+    if ($5)
+    {
+        addIlocListToIlocList(operationList, $5->operationList);
+    }
     IlocOperation operationJumpAfterCode = generateOperation(OP_JUMPI, labelEnd, -1, -1, -1);
     addOperationToIlocList(operationList, operationJumpAfterCode);
 
     // "labelFalse": nop
-    // -- CÓDIGO DO BLOCO DE COMANDOS FALSO --
     IlocOperation operationNopFalse = generateNopOperation();
     operationNopFalse = addLabelToOperation(operationNopFalse, labelFalse);
     addOperationToIlocList(operationList, operationNopFalse);
-    addIlocListToIlocList(operationList, $7->operationList);
+
+    // -- CÓDIGO DO BLOCO DE COMANDOS FALSO --
+    if ($7)
+    {
+        addIlocListToIlocList(operationList, $7->operationList);
+    }    
 
     // "labelEnd": nop
     IlocOperation operationNopEnd = generateNopOperation();
@@ -622,7 +646,7 @@ flow_control_command: TK_PR_IF '(' expression ')' command_block TK_PR_ELSE comma
     $$->operationList = operationList;
 };
 
-flow_control_command: TK_PR_WHILE '(' expression ')' command_block
+flow_control_command: TK_PR_WHILE '(' expression ')' command_block_flow_control_command
 {
     $$ = createNodeFromLabel($1, inferTypeFromNode($3));
     addChild($$, $3);
@@ -656,14 +680,18 @@ flow_control_command: TK_PR_WHILE '(' expression ')' command_block
     addOperationToIlocList(operationList, operationCmpFalse);
     IlocOperation operationCbr = generateOperation(OP_CBR, registerCmp, -1, labelTrue, labelFalse);
     addOperationToIlocList(operationList, operationCbr);
-
+    
     // "labelTrue": nop
-    // -- CÓDIGO DO BLOCO DE COMANDOS --
     IlocOperation operationNopTrue = generateNopOperation();
     operationNopTrue = addLabelToOperation(operationNopTrue, labelTrue);
     addOperationToIlocList(operationList, operationNopTrue);
-    addIlocListToIlocList(operationList, $5->operationList);
 
+    // -- CÓDIGO DO BLOCO DE COMANDOS --
+    if ($5)
+    {
+        addIlocListToIlocList(operationList, $5->operationList);
+    }
+    
     // jumpI -> labelComparation
     IlocOperation operationJumpAfterCode = generateOperation(OP_JUMPI, labelComparation, -1, -1, -1);
     addOperationToIlocList(operationList, operationJumpAfterCode);
