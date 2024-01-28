@@ -1,6 +1,6 @@
 int teste1, teste2, teste3;
 
-(float value1, bool b, int value2) >= bool! function
+(float value1, bool b, int value2, int value3, int value4) >= bool! function1
 {
     int new_value;
 
@@ -15,7 +15,7 @@ int teste1, teste2, teste3;
         new_value = value1 / value2;
     };
 
-    int sla; // isso daqui, de acordo com a especificação do professor, deveria dar erro, arrumar dps
+    //int sla; // isso daqui, de acordo com a especificação do professor, deveria dar erro, arrumar dps
     bool b1, b2, b3, b4, b5;
 
     b = b1 + b2 + (b3 * (b4 / b5));
@@ -23,7 +23,7 @@ int teste1, teste2, teste3;
     {};
     {{{{};};};};
 
-    function(b1, b2, b3, b4);
+    function1(b1, b2, b3, b4);
 
     while(b) {};
     while(b==b) {{};};
@@ -32,3 +32,13 @@ int teste1, teste2, teste3;
 
     return new_value;
 }
+
+() >= int! function2
+{
+    float number;
+
+    teste1 = teste2;
+    teste2 = teste3;
+}
+
+int a, b, c, d, e;

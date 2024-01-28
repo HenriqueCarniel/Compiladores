@@ -17,30 +17,18 @@ void popGlobalStack();
 
 void copySymbolsToGlobalStackBelow();
 
-/*
-
-    Criação de uma nova pilha de tabela de símbolos
-
-*/
+// Criação de uma nova pilha de tabela de símbolos
 SymbolTableStack* createSymbolTableStack();
-/*
 
-    Criação de uma nova tabela de símbolos
-
-*/
+// Criação de uma nova tabela de símbolos
 SymbolTable* createSymbolTable();
-/*
 
-    Criação de um valor de símbolo para a tabela de símbolos
-
-*/
+// Criação de um valor de símbolo para a tabela de símbolos
 SymbolTableEntryValue createSymbolTableEntryValue(SymbolNature symbolNature, DataType dataType, LexicalValue lexicalValue);
 
-/*
-
-    Operações de liberação de memória
-
-*/
+//////////////////////////////////////////////////////////////
+//          OPERAÇÕES DE LIBERAÇÃO DE MEMÓRIA
+//////////////////////////////////////////////////////////////
 
 void freeSymbolTableEntryValue(SymbolTableEntryValue value);
 
@@ -49,11 +37,7 @@ void freeSymbolTable(SymbolTable* table);
 void freeSymbolTableStack(SymbolTableStack* stack);
 
 //////////////////////////////////////////////////////////////
-
-
 //          OPERAÇÕES COM CHAVES E VALORES
-
-
 //////////////////////////////////////////////////////////////
 
 // Retorna uma entrada vazia
@@ -70,45 +54,32 @@ size_t getIndex(size_t capacity, char* key);
 
 int isSameKey(SymbolTableEntry* entry, char* key);
 
-
 //////////////////////////////////////////////////////////////
-
-
 //          OPERAÇÕES COM A TABELA DE PILHAS
-
-
 //////////////////////////////////////////////////////////////
 
-// Adiciona um símbolo a uma tabela de símbolos
-
-void addSymbolValueToTable(SymbolTable* table, SymbolTableEntryValue value);
-
-void addSymbolValueToGlobalTableStack(SymbolTableEntryValue value);
-void addSymbolValueToBelowGlobalTableStack(SymbolTableEntryValue value);
+// Adiciona um símbolo a uma tabela de símbolos, a partir de uma uma pilha de tabelas de símbolos
+void addSymbolValueToTable(SymbolTableStack* stack, SymbolTableEntryValue value);
+void addSymbolValueToTableStack(SymbolTableStack* stack, SymbolTableEntryValue value);
+void addSymbolValueToBelowTableStack(SymbolTableStack* stack, SymbolTableEntryValue value);
 
 // Verifica se a chave já existe em uma tabela dada
 int isKeyInTable(SymbolTable* table, char* key);
 
 // Verifica se o símbolo já foi declarado nas tabelas da pilhas
-// (percorre do topo ao fim da pilha)
+//(percorre do topo ao fim da pilha)
 void checkSymbolDeclared(SymbolTableEntryValue value);
 
 // Verifica se o identificador já foi declarado nas tabelas da pilhas
-// (percorre do topo ao fim da pilha)
+//(percorre do topo ao fim da pilha)
 int isIdentifierDeclared(char* identifier);
 
 //////////////////////////////////////////////////////////////
-
-
 //          UTILS
-
-
 //////////////////////////////////////////////////////////////
 
 void printGlobalTableStack(int depth);
-
 DataType inferTypeFromIdentifier(LexicalValue identifier);
-
 void checkIdentifierIsVariable(LexicalValue identifier);
 void checkIdentifierIsFunction(LexicalValue identifier);
 

@@ -48,7 +48,6 @@ typedef struct Node
     ///////////////////////// ETAPA 5 /////////////////////////
     struct IlocOperationList* operationList;
     int outRegister;
-    int lastPosition;
 } Node;
 
 // ===============================
@@ -100,6 +99,7 @@ typedef struct SymbolTable
     SymbolTableBucket* buckets;
 
     ///////////////////////// ETAPA 5 /////////////////////////
+    //int isGlobal;
     int lastPosition;
 } SymbolTable;
 

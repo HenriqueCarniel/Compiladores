@@ -13,14 +13,10 @@ int yylex(void);
 void yyerror (char const *mensagem);
 int get_line_number();
 extern Node *arvore;
+extern SymbolTableStack* globalSymbolTableStack;
 
 // O tipo atualmente declarado
 DataType declaredType = DATA_TYPE_UNDECLARED;
-
-///////////////////////// ETAPA 5 /////////////////////////
-int mainLabel = 0;
-int mainPosition = 0;
-int currentRFPoffset = 0;
 
 %}
 
@@ -121,7 +117,8 @@ elements_list: functions elements_list
 {
     $$ = $1;
     addChild($$, $2);
-    addIlocListToIlocList($$->operationList, $2->operationList);
+    if ($2)
+        addIlocListToIlocList($$->operationList, $2->operationList);
 };
 
 elements_list: global_variables elements_list
@@ -174,7 +171,7 @@ literal: TK_LIT_INT
         DATA_TYPE_INT,
         $1
     );
-    addSymbolValueToGlobalTableStack(value);
+    addSymbolValueToTableStack(globalSymbolTableStack, value);
 
     ///////////////////////// ETAPA 5 /////////////////////////
     IlocOperationList* operationList = createIlocOperationList();
@@ -197,7 +194,7 @@ literal: TK_LIT_FLOAT
         DATA_TYPE_FLOAT,
         $1
     );
-    addSymbolValueToGlobalTableStack(value);
+    addSymbolValueToTableStack(globalSymbolTableStack, value);
 };
 
 literal: TK_LIT_FALSE
@@ -208,7 +205,7 @@ literal: TK_LIT_FALSE
         DATA_TYPE_BOOL,
         $1
     );
-    addSymbolValueToGlobalTableStack(value);
+    addSymbolValueToTableStack(globalSymbolTableStack, value);
 };
 
 literal: TK_LIT_TRUE
@@ -219,7 +216,7 @@ literal: TK_LIT_TRUE
         DATA_TYPE_BOOL,
         $1
     );
-    addSymbolValueToGlobalTableStack(value);
+    addSymbolValueToTableStack(globalSymbolTableStack, value);
 };
 
 
@@ -229,9 +226,6 @@ literal: TK_LIT_TRUE
 global_variables: type identifiers_list ';'
 {
     $$ = NULL;
-
-    // TODO: comentei essa linha de baixo meio SUS
-    //removeNode($2);
     
     // Não tem mais um tipo sendo declarado
     declaredType = DATA_TYPE_UNDECLARED;
@@ -246,9 +240,8 @@ identifiers_list: TK_IDENTIFICADOR
         declaredType,
         $1
     );
-    addSymbolValueToGlobalTableStack(value);
-    
-    };
+    addSymbolValueToTableStack(globalSymbolTableStack, value);
+};
 
 identifiers_list: TK_IDENTIFICADOR ',' identifiers_list
 {
@@ -259,12 +252,11 @@ identifiers_list: TK_IDENTIFICADOR ',' identifiers_list
         declaredType,
         $1
     );
-    addSymbolValueToGlobalTableStack(value);
+    addSymbolValueToTableStack(globalSymbolTableStack, value);
+};
 
-    };
 
-
-// TODO: implementar toda essa parte de funções
+// TODO: implementar toda essa parte de funções???
 // ======================== FUNÇÕES ========================
 functions: header body
 {
@@ -292,7 +284,7 @@ header: function_arguments TK_OC_GE type '!' TK_IDENTIFICADOR
     );
     // Porém, devido ao fato de estarmos no escopo dos parâmetros,
     // o identificador deve ir na tabela abaixo (global)
-    addSymbolValueToBelowGlobalTableStack(value);
+    addSymbolValueToBelowTableStack(globalSymbolTableStack, value);
 
     $$ = createNodeFromLexicalValue($5, $3);
 
@@ -330,9 +322,7 @@ parameters_list: type TK_IDENTIFICADOR
         declaredType,
         $2
     );
-    addSymbolValueToGlobalTableStack(value);
-
-    // TODO: atualizar $$->position
+    addSymbolValueToTableStack(globalSymbolTableStack, value);
 
     freeLexicalValue($2);
 };
@@ -347,9 +337,7 @@ parameters_list: type TK_IDENTIFICADOR ',' parameters_list
         declaredType,
         $2
     );
-    addSymbolValueToGlobalTableStack(value);
-
-    // TODO: atualizar $$->position
+    addSymbolValueToTableStack(globalSymbolTableStack, value);
 
     freeLexicalValue($2);
 };
@@ -366,7 +354,6 @@ command_block: command_block_begin command_block_end
 command_block: command_block_begin simple_command_list command_block_end
 {
     $$ = $2;
-    // TODO: atualizar por aqui o $$->lastPosition
 };
 
 command_block_begin: '{'
@@ -509,6 +496,10 @@ function_call: TK_IDENTIFICADOR '(' expression_list ')'
     $$ = createNodeToFunctionCall($1, type);
     addChild($$, $3);
 
+    // nesse caso, o código da lista de expressões é adicionado no código
+    // TODO: perguntar se isso é realmente necessário, pois de qualquer forma, registradores e labels
+    //serão gerados para essas expressões, pois vamos gerando código para elas sem saber que depois
+    //farão parte de uma chamada de função
     $$->operationList = $3->operationList;
 };
 

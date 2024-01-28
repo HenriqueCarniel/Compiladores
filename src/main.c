@@ -20,27 +20,20 @@ int main (int argc, char **argv)
   initGlobalSymbolStack();
 
   int ret = yyparse(); 
-  //exporta (arvore);
-  //removeNode(arvore);
+
+  printf("ESCOPO FINAL\n");
+  printf("======================\n");
+  printf("Frame atual:\n");
+  printGlobalTableStack(1);
+
   if (arvore != NULL)
   {
     generateCode(arvore->operationList);
   }
 
   arvore = NULL;
-
   yylex_destroy();
-
-  //printf("Final stack state:\n");
-  //printGlobalTableStack(100);
-
   freeSymbolTableStack(globalSymbolTableStack);
 
   return ret;
-  
-
-  //testOperationAndLists();
-  //printf("\n");
-
-  return 0;
 }
