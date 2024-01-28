@@ -125,13 +125,13 @@ void generateCodeByOperation(IlocOperation operation)
             printf("loadAI rbss, %d => r%d \n", operation.op1, operation.out1);
             break;
         case OP_LOADAI_LOCAL:
-            printf("loadAI r0, %d => r%d \n", operation.op1, operation.out1);
+            printf("loadAI rfp, %d => r%d \n", operation.op1, operation.out1);
             break;
         case OP_STOREAI_GLOBAL:
             printf("storeAI r%d => rbss, %d \n", operation.op1, operation.out1);
             break;
         case OP_STOREAI_LOCAL:
-            printf("storeAI r%d => r0, %d \n", operation.op1, operation.out1);
+            printf("storeAI r%d => rfp, %d \n", operation.op1, operation.out1);
             break;
         default:
             break;

@@ -21,10 +21,10 @@ int main (int argc, char **argv)
 
   int ret = yyparse(); 
 
-  printf("ESCOPO FINAL\n");
-  printf("======================\n");
-  printf("Frame atual:\n");
-  printGlobalTableStack(1);
+  //printf("ESCOPO FINAL\n");
+  //printf("======================\n");
+  //printf("Frame atual:\n");
+  //printGlobalTableStack(1);
 
   if (arvore != NULL)
   {

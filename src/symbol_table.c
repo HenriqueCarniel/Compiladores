@@ -45,18 +45,18 @@ void addTableToGlobalStack(SymbolTable* symbolTable)
     // O frame se torna o novo topo
     globalSymbolTableStack = newStackFrame;
 
-    printf("EMPILHANDO NOVO ESCOPO\n");
-    printf("======================\n");
-    printf("Frame atual:\n");
-    printGlobalTableStack(100);
+    //printf("EMPILHANDO NOVO ESCOPO\n");
+    //printf("======================\n");
+    //printf("Frame atual:\n");
+    //printGlobalTableStack(100);
 }
 
 void popGlobalStack()
 {
-    printf("DESEMPILHANDO NOVO ESCOPO\n");
-    printf("=========================\n");
-    printf("Frame desempilhado:\n");
-    printGlobalTableStack(100);
+    //printf("DESEMPILHANDO NOVO ESCOPO\n");
+    //printf("=========================\n");
+    //printf("Frame desempilhado:\n");
+    //printGlobalTableStack(100);
     
     freeSymbolTable(globalSymbolTableStack->symbolTable);
     globalSymbolTableStack = globalSymbolTableStack->nextItem;

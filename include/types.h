@@ -139,12 +139,8 @@ typedef enum IlocOperationType
     OP_LOADI,
     OP_LOADAI_GLOBAL,
     OP_LOADAI_LOCAL,
-    
     OP_STOREAI_GLOBAL,
     OP_STOREAI_LOCAL
-
-    // TODO: colocar os outros tipos de operações ILOC
-
 } IlocOperationType;
 
 typedef struct IlocOperation

@@ -108,7 +108,7 @@ program: elements_list
     $$ = $1;
     arvore = $$;
 
-    // TODO: necessário implementar algo por aq?
+    $$->operationList = $1->operationList;
 };
 
 
@@ -524,6 +524,12 @@ return_command: TK_PR_RETURN expression
 {
     $$ = createNodeFromLabel($1, inferTypeFromNode($2));
     addChild($$, $2);
+
+    ///////////////////////// ETAPA 5 /////////////////////////
+
+    // TODO: Mesmo problema que tínhamos na chamada de função, realmente precisamos gerar código
+    //para isso?
+    $$->operationList = $2->operationList;
 };
 
 
