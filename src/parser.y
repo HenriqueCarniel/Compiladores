@@ -15,8 +15,8 @@ int get_line_number();
 extern Node *arvore;
 extern SymbolTableStack* globalSymbolTableStack;
 
-// O tipo atualmente declarado
-DataType declaredType = DATA_TYPE_UNDECLARED;
+DataType declaredType = DATA_TYPE_UNDECLARED; // O tipo atualmente declarado
+int mainLabel = 0; // Label da função principal do programa (1ª a ser executada)
 
 %}
 
@@ -108,7 +108,14 @@ program: elements_list
     $$ = $1;
     arvore = $$;
 
-    $$->operationList = $1->operationList;
+    ///////////////////////// ETAPA 5 /////////////////////////
+    IlocOperationList* operationListStartMain = createIlocOperationList();
+
+    IlocOperation operationJumpToMain = generateOperation(OP_JUMPI, mainLabel, -1, -1, -1);
+    addOperationToIlocList(operationListStartMain, operationJumpToMain);
+    addIlocListToIlocList(operationListStartMain, $$->operationList);
+
+    $$->operationList = operationListStartMain;
 };
 
 
@@ -268,14 +275,16 @@ functions: header body
     // tendo somente o frame global
     popGlobalStack();
 
-    if ($2)
-    {
+    if (!$1->operationList && $2)
         $$->operationList = $2->operationList;
-    }
+    else if ($2)
+        addIlocListToIlocList($$->operationList, $2->operationList);
 };
 
 header: function_arguments TK_OC_GE type '!' TK_IDENTIFICADOR
 {   
+    $$ = createNodeFromLexicalValue($5, $3);
+
     // Adiciona identificador à tabela de tipos
     SymbolTableEntryValue value = createSymbolTableEntryValue(
         SYMBOL_NATURE_FUNCTION,
@@ -283,11 +292,20 @@ header: function_arguments TK_OC_GE type '!' TK_IDENTIFICADOR
         $5
     );
     // Porém, devido ao fato de estarmos no escopo dos parâmetros,
-    // o identificador deve ir na tabela abaixo (global)
+    //o identificador deve ir na tabela abaixo (global)
     addSymbolValueToBelowTableStack(globalSymbolTableStack, value);
 
-    $$ = createNodeFromLexicalValue($5, $3);
+    if (strncmp($5.label, "main", 4) == 0)
+    {
+        mainLabel = generateLabel();
 
+        IlocOperationList* operationList = createIlocOperationList();
+        IlocOperation operationNop = generateNopOperation();
+        operationNop = addLabelToOperation(operationNop, mainLabel);
+        addOperationToIlocList(operationList, operationNop);
+
+        $$->operationList = operationList;
+    }
 };
 
 body: command_block
@@ -500,6 +518,8 @@ function_call: TK_IDENTIFICADOR '(' expression_list ')'
     // TODO: perguntar se isso é realmente necessário, pois de qualquer forma, registradores e labels
     //serão gerados para essas expressões, pois vamos gerando código para elas sem saber que depois
     //farão parte de uma chamada de função
+
+    // RESPOSTA: não precisa
     $$->operationList = $3->operationList;
 };
 
@@ -529,6 +549,8 @@ return_command: TK_PR_RETURN expression
 
     // TODO: Mesmo problema que tínhamos na chamada de função, realmente precisamos gerar código
     //para isso?
+
+    // RESPOSTA: Não precisa
     $$->operationList = $2->operationList;
 };
 

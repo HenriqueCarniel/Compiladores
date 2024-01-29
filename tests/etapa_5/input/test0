@@ -28,12 +28,12 @@ int teste1, teste2, teste3;
     //while(b) {};
     //while(b==b) {{};};
 
-    if (value2){ value1 = value2; };
+    if (value2) { value1 = value2; };
 
     return new_value;
 }
 
-() >= int! function2
+() >= int! main
 {
     float number;
 
