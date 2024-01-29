@@ -3,8 +3,6 @@
 #include "symbol_table.h"
 #include "iloc.h"
 
-#include "iloc.h"
-
 extern int yyparse(void);
 extern int yylex_destroy(void);
 Node *arvore;
@@ -21,11 +19,13 @@ int main (int argc, char **argv)
 
   int ret = yyparse(); 
 
-  //printf("ESCOPO FINAL\n");
-  //printf("======================\n");
-  //printf("Frame atual:\n");
-  //printGlobalTableStack(1);
-
+  #ifdef DEBUG
+    printf("ESCOPO FINAL\n");
+    printf("======================\n");
+    printf("Frame atual:\n");
+    printGlobalTableStack(1);
+  #endif
+  
   if (arvore != NULL)
   {
     generateCode(arvore->operationList);
