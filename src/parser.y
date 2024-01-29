@@ -411,7 +411,15 @@ simple_command_list: command simple_command_list
     {
         $$ = $1;
         addChild($$, $2);
-        addIlocListToIlocList($1->operationList, $2->operationList);
+
+        if ($1->operationList)
+        {
+            addIlocListToIlocList($1->operationList, $2->operationList);
+        }
+        else
+        {
+            $$->operationList = $2->operationList;
+        }
     }
     else
     {
@@ -520,7 +528,7 @@ function_call: TK_IDENTIFICADOR '(' expression_list ')'
     //farão parte de uma chamada de função
 
     // RESPOSTA: não precisa
-    $$->operationList = $3->operationList;
+    //$$->operationList = $3->operationList;
 };
 
 expression_list: expression
@@ -551,7 +559,7 @@ return_command: TK_PR_RETURN expression
     //para isso?
 
     // RESPOSTA: Não precisa
-    $$->operationList = $2->operationList;
+    //$$->operationList = $2->operationList;
 };
 
 
