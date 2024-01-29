@@ -124,6 +124,7 @@ typedef enum IlocOperationType
     OP_MULT,
     OP_DIV,
     OP_NEG,
+    OP_NEG_LOG,
     OP_SUB,
     OP_ADD,
     OP_AND,

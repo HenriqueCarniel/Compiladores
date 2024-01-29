@@ -362,10 +362,6 @@ command_block_begin: '{'
 
 command_block_end: '}'
 {
-    //printf("Final stack state:\n");
-    //printGlobalTableStack(100);
-    //printf("\n\n");
-
     popGlobalStack();
 };
 
@@ -1178,8 +1174,18 @@ expression_grade_two: '!' expression_grade_one
     $$ = createNodeFromLabel($1, inferTypeFromNode($2));
     addChild($$, $2);
 
+    // TODO: Como fazer essa operação???
     ///////////////////////// ETAPA 5 /////////////////////////
-    // TODO: como implementar isso com as operações ILOC???
+    IlocOperationList* operationList = createListFromOtherList($2->operationList);
+
+    int r1 = $2->outRegister;
+    int r2 = generateRegister();
+
+    IlocOperation operation = generateOperation(OP_NEG_LOG, r1, -1, r2, -1);
+    addOperationToIlocList(operationList, operation);
+
+    $$->outRegister = r2;
+    $$->operationList = operationList;
 };
 
 expression_grade_two: expression_grade_one

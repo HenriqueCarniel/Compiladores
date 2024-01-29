@@ -82,6 +82,9 @@ void generateCodeByOperation(IlocOperation operation)
         case OP_NEG:
             printf("rsubI r%d, 0 => r%d \n", operation.op1, operation.out1);
             break;
+        case OP_NEG_LOG:
+            printf("xorI r%d, -1 => r%d \n", operation.op1, operation.out1);
+            break;
         case OP_SUB:
             printf("sub r%d, r%d => r%d \n", operation.op1, operation.op2, operation.out1);
             break;
