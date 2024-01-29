@@ -5,6 +5,7 @@
 
 extern int yyparse(void);
 extern int yylex_destroy(void);
+extern Node* mainFunctionNode;
 Node *arvore;
 SymbolTableStack* globalSymbolTableStack;
 
@@ -24,14 +25,22 @@ int main (int argc, char **argv)
     printf("======================\n");
     printf("Frame atual:\n");
     printGlobalTableStack(1);
+
+    printf("GERANDO CÓDIGO INTEIRO\n");
+    if (arvore != NULL)
+    {
+      generateCode(arvore->operationList);
+    }
   #endif
   
-  if (arvore != NULL)
+  // Código da função main
+  if (mainFunctionNode->operationList != NULL)
   {
-    generateCode(arvore->operationList);
+    generateCode(mainFunctionNode->operationList);
   }
 
   arvore = NULL;
+  mainFunctionNode = NULL;
   yylex_destroy();
   freeSymbolTableStack(globalSymbolTableStack);
 

@@ -15,7 +15,7 @@ int teste1, teste2, teste3;
         new_value = value1 / 4;
     };
 
-    //int sla; // isso daqui, de acordo com a especificação do professor
+    //int sla; // isso daqui, da erro semântico, de acordo com a especificação da etapa4
     bool b1, b2, b3, b4, b5;
 
     b = b1 + b2 + (b3 * (b4 / 8));

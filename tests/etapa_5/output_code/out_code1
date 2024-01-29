@@ -29,4 +29,3 @@ loadAI rfp, 4 => r15
 loadAI rfp, 0 => r16 
 add r15, r16 => r17 
 storeAI r17 => rbss, 8 
-loadAI rbss, 8 => r18 

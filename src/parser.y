@@ -16,7 +16,7 @@ extern Node *arvore;
 extern SymbolTableStack* globalSymbolTableStack;
 
 DataType declaredType = DATA_TYPE_UNDECLARED; // O tipo atualmente declarado
-int mainLabel = 0; // Label da função principal do programa (1ª a ser executada)
+Node* mainFunctionNode = NULL;
 
 %}
 
@@ -107,15 +107,6 @@ program: elements_list
 {
     $$ = $1;
     arvore = $$;
-
-    ///////////////////////// ETAPA 5 /////////////////////////
-    IlocOperationList* operationListStartMain = createIlocOperationList();
-
-    IlocOperation operationJumpToMain = generateOperation(OP_JUMPI, mainLabel, -1, -1, -1);
-    addOperationToIlocList(operationListStartMain, operationJumpToMain);
-    addIlocListToIlocList(operationListStartMain, $$->operationList);
-
-    $$->operationList = operationListStartMain;
 };
 
 
@@ -275,10 +266,12 @@ functions: header body
     // tendo somente o frame global
     popGlobalStack();
 
-    if (!$1->operationList && $2)
+    if ($2)
         $$->operationList = $2->operationList;
-    else if ($2)
-        addIlocListToIlocList($$->operationList, $2->operationList);
+
+    if (strncmp($1->lexicalValue.label, "main", 4) == 0)
+        mainFunctionNode = $$;
+    
 };
 
 header: function_arguments TK_OC_GE type '!' TK_IDENTIFICADOR
@@ -294,18 +287,6 @@ header: function_arguments TK_OC_GE type '!' TK_IDENTIFICADOR
     // Porém, devido ao fato de estarmos no escopo dos parâmetros,
     //o identificador deve ir na tabela abaixo (global)
     addSymbolValueToBelowTableStack(globalSymbolTableStack, value);
-
-    if (strncmp($5.label, "main", 4) == 0)
-    {
-        mainLabel = generateLabel();
-
-        IlocOperationList* operationList = createIlocOperationList();
-        IlocOperation operationNop = generateNopOperation();
-        operationNop = addLabelToOperation(operationNop, mainLabel);
-        addOperationToIlocList(operationList, operationNop);
-
-        $$->operationList = operationList;
-    }
 };
 
 body: command_block

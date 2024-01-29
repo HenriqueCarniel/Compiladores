@@ -217,10 +217,9 @@
 28 ['loadAI', 'rfp', 0, 'r16']
 29 ['add', 'r15', 'r16', 'r17']
 30 ['storeAI', 'r17', 'rbss', 8]
-31 ['loadAI', 'rbss', 8, 'r18']
 45 loadI
-34 loadAI
 33 nop
+33 loadAI
 23 storeAI
 22 cmp_NE
 22 cbr
@@ -229,8 +228,8 @@
 10 sub
 count	instruction
    45	loadI
-   34	loadAI
    33	nop
+   33	loadAI
    23	storeAI
    22	cmp_NE
    22	cbr
@@ -238,9 +237,9 @@ count	instruction
    11	add
    10	sub
 
-instructions executed:  220
-register         read:  188 write:  342
-memory           read:   34 write:   23
+instructions executed:  219
+register         read:  187 write:  340
+memory           read:   33 write:   23
 
   register    value
         r1       10
@@ -252,7 +251,6 @@ memory           read:   34 write:   23
        r15        0
        r16       30
        r17       30
-       r18       30
         r2       20
         r3        0
         r4        0
@@ -263,7 +261,7 @@ memory           read:   34 write:   23
         r9        0
       rbss        0
        rfp     1024
-       rpc       31
+       rpc       30
        rsp     1024
 
     memory    value

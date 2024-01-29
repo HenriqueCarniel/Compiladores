@@ -1,115 +1,27 @@
-0 ['loadAI', 'rfp', 12, 'r1']
-1 ['loadAI', 'rfp', 16, 'r2']
-2 ['cmp_EQ', 'r1', 'r2', 'r3']
-3 ['cbr', 'r3', 4, 6]
-4 ['loadI', 1, 'r4']
-5 ['jumpI', 7]
-7 ['nop']
-8 ['loadI', 0, 'r12']
-9 ['cmp_NE', 'r4', 'r12', 'r13']
-10 ['cbr', 'r13', 11, 19]
-11 ['nop']
-12 ['loadAI', 'rfp', 16, 'r5']
-13 ['loadAI', 'rfp', 8, 'r6']
-14 ['mult', 'r5', 'r6', 'r7']
-15 ['storeAI', 'r7', 'rfp', 20]
-16 ['loadI', 8, 'r8']
-17 ['storeAI', 'r8', 'rfp', 12]
-18 ['jumpI', 24]
-24 ['nop']
-25 ['loadAI', 'rfp', 44, 'r14']
-26 ['loadAI', 'rfp', 40, 'r15']
-27 ['add', 'r14', 'r15', 'r16']
-28 ['loadAI', 'rfp', 36, 'r17']
-29 ['loadAI', 'rfp', 32, 'r18']
-30 ['loadI', 8, 'r19']
-31 ['div', 'r18', 'r19', 'r20']
-32 ['mult', 'r17', 'r20', 'r21']
-33 ['add', 'r16', 'r21', 'r22']
-34 ['storeAI', 'r22', 'rfp', 12]
-35 ['loadAI', 'rfp', 44, 'r23']
-36 ['loadAI', 'rfp', 40, 'r24']
-37 ['loadAI', 'rfp', 36, 'r25']
-38 ['loadAI', 'rfp', 32, 'r26']
-39 ['loadAI', 'rfp', 8, 'r27']
-40 ['loadI', 0, 'r29']
-41 ['cmp_NE', 'r27', 'r29', 'r30']
-42 ['cbr', 'r30', 43, 46]
-46 ['nop']
-47 ['loadAI', 'rfp', 20, 'r31']
-48 ['loadAI', 'rbss', 4, 'r32']
-49 ['storeAI', 'r32', 'rbss', 8]
-50 ['loadAI', 'rbss', 0, 'r33']
-51 ['storeAI', 'r33', 'rbss', 4]
-16 loadAI
-5 loadI
-5 storeAI
-4 nop
-3 cbr
-2 jumpI
-2 cmp_NE
-2 mult
-2 add
-1 cmp_EQ
-1 div
+0 ['loadAI', 'rbss', 4, 'r32']
+1 ['storeAI', 'r32', 'rbss', 8]
+2 ['loadAI', 'rbss', 0, 'r33']
+3 ['storeAI', 'r33', 'rbss', 4]
+2 loadAI
+2 storeAI
 count	instruction
-   16	loadAI
-    5	loadI
-    5	storeAI
-    4	nop
-    3	cbr
-    2	jumpI
-    2	cmp_NE
-    2	mult
-    2	add
-    1	cmp_EQ
-    1	div
+    2	loadAI
+    2	storeAI
 
-instructions executed:   43
-register         read:   45 write:   72
-memory           read:   16 write:    5
+instructions executed:    4
+register         read:    6 write:    6
+memory           read:    2 write:    2
 
   register    value
-        r1        0
-       r12        0
-       r13        1
-       r14        0
-       r15        0
-       r16        0
-       r17        0
-       r18        0
-       r19        8
-        r2        0
-       r20        0
-       r21        0
-       r22        0
-       r23        0
-       r24        0
-       r25        0
-       r26        0
-       r27        0
-       r29        0
-        r3        1
-       r30        0
-       r31        0
        r32        0
        r33        0
-        r4        1
-        r5        0
-        r6        0
-        r7        0
-        r8        8
       rbss        0
        rfp     1024
-       rpc       51
+       rpc        3
        rsp     1024
 
     memory    value
 00000004        0
 00000008        0
-00001036        0
-00001044        0
 00000004 0
 00000008 0
-00001036 0
-00001044 0
