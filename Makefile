@@ -6,6 +6,7 @@ BUILD_DIR = build
 INCLUDE_DIR = include
 PATH_FLEX_SRC = $(SRC_DIR)/scanner.l
 PATH_BISON_SRC = $(SRC_DIR)/parser.y
+TEST_SCRIPT = ./tests/etapa_5/script.sh
 
 ########################################
 #			ARQUIVOS
@@ -35,7 +36,7 @@ PROGRAM_NAME 			= etapa5
 #			REGRAS
 ########################################
 
-.PHONY: all release debug clean build
+.PHONY: all release debug clean build test
 
 all: release
 
@@ -48,6 +49,10 @@ debug: build
 
 build: $(OBJ)
 	$(CC) -o $(PROGRAM_NAME) $^ $(CFLAGS)
+
+test: all
+	@echo "Running test script..."
+	$(TEST_SCRIPT)
 
 clean:
 	rm -f $(PROGRAM_NAME)

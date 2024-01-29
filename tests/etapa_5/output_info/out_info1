@@ -1,0 +1,275 @@
+0 ['loadI', 10, 'r1']
+1 ['storeAI', 'r1', 'rfp', 4]
+2 ['loadI', 20, 'r2']
+3 ['storeAI', 'r2', 'rfp', 0]
+4 ['loadI', 0, 'r13']
+5 ['nop']
+6 ['loadAI', 'rfp', 4, 'r3']
+7 ['loadI', 0, 'r4']
+8 ['cmp_NE', 'r3', 'r4', 'r5']
+9 ['cbr', 'r5', 10, 12]
+10 ['loadI', 1, 'r6']
+11 ['jumpI', 13]
+13 ['nop']
+14 ['cmp_NE', 'r6', 'r13', 'r14']
+15 ['cbr', 'r14', 16, 26]
+16 ['nop']
+17 ['loadAI', 'rfp', 4, 'r7']
+18 ['loadI', 1, 'r8']
+19 ['sub', 'r7', 'r8', 'r9']
+20 ['storeAI', 'r9', 'rfp', 4]
+21 ['loadAI', 'rfp', 0, 'r10']
+22 ['loadI', 1, 'r11']
+23 ['add', 'r10', 'r11', 'r12']
+24 ['storeAI', 'r12', 'rfp', 0]
+25 ['jumpI', 5]
+5 ['nop']
+6 ['loadAI', 'rfp', 4, 'r3']
+7 ['loadI', 0, 'r4']
+8 ['cmp_NE', 'r3', 'r4', 'r5']
+9 ['cbr', 'r5', 10, 12]
+10 ['loadI', 1, 'r6']
+11 ['jumpI', 13]
+13 ['nop']
+14 ['cmp_NE', 'r6', 'r13', 'r14']
+15 ['cbr', 'r14', 16, 26]
+16 ['nop']
+17 ['loadAI', 'rfp', 4, 'r7']
+18 ['loadI', 1, 'r8']
+19 ['sub', 'r7', 'r8', 'r9']
+20 ['storeAI', 'r9', 'rfp', 4]
+21 ['loadAI', 'rfp', 0, 'r10']
+22 ['loadI', 1, 'r11']
+23 ['add', 'r10', 'r11', 'r12']
+24 ['storeAI', 'r12', 'rfp', 0]
+25 ['jumpI', 5]
+5 ['nop']
+6 ['loadAI', 'rfp', 4, 'r3']
+7 ['loadI', 0, 'r4']
+8 ['cmp_NE', 'r3', 'r4', 'r5']
+9 ['cbr', 'r5', 10, 12]
+10 ['loadI', 1, 'r6']
+11 ['jumpI', 13]
+13 ['nop']
+14 ['cmp_NE', 'r6', 'r13', 'r14']
+15 ['cbr', 'r14', 16, 26]
+16 ['nop']
+17 ['loadAI', 'rfp', 4, 'r7']
+18 ['loadI', 1, 'r8']
+19 ['sub', 'r7', 'r8', 'r9']
+20 ['storeAI', 'r9', 'rfp', 4]
+21 ['loadAI', 'rfp', 0, 'r10']
+22 ['loadI', 1, 'r11']
+23 ['add', 'r10', 'r11', 'r12']
+24 ['storeAI', 'r12', 'rfp', 0]
+25 ['jumpI', 5]
+5 ['nop']
+6 ['loadAI', 'rfp', 4, 'r3']
+7 ['loadI', 0, 'r4']
+8 ['cmp_NE', 'r3', 'r4', 'r5']
+9 ['cbr', 'r5', 10, 12]
+10 ['loadI', 1, 'r6']
+11 ['jumpI', 13]
+13 ['nop']
+14 ['cmp_NE', 'r6', 'r13', 'r14']
+15 ['cbr', 'r14', 16, 26]
+16 ['nop']
+17 ['loadAI', 'rfp', 4, 'r7']
+18 ['loadI', 1, 'r8']
+19 ['sub', 'r7', 'r8', 'r9']
+20 ['storeAI', 'r9', 'rfp', 4]
+21 ['loadAI', 'rfp', 0, 'r10']
+22 ['loadI', 1, 'r11']
+23 ['add', 'r10', 'r11', 'r12']
+24 ['storeAI', 'r12', 'rfp', 0]
+25 ['jumpI', 5]
+5 ['nop']
+6 ['loadAI', 'rfp', 4, 'r3']
+7 ['loadI', 0, 'r4']
+8 ['cmp_NE', 'r3', 'r4', 'r5']
+9 ['cbr', 'r5', 10, 12]
+10 ['loadI', 1, 'r6']
+11 ['jumpI', 13]
+13 ['nop']
+14 ['cmp_NE', 'r6', 'r13', 'r14']
+15 ['cbr', 'r14', 16, 26]
+16 ['nop']
+17 ['loadAI', 'rfp', 4, 'r7']
+18 ['loadI', 1, 'r8']
+19 ['sub', 'r7', 'r8', 'r9']
+20 ['storeAI', 'r9', 'rfp', 4]
+21 ['loadAI', 'rfp', 0, 'r10']
+22 ['loadI', 1, 'r11']
+23 ['add', 'r10', 'r11', 'r12']
+24 ['storeAI', 'r12', 'rfp', 0]
+25 ['jumpI', 5]
+5 ['nop']
+6 ['loadAI', 'rfp', 4, 'r3']
+7 ['loadI', 0, 'r4']
+8 ['cmp_NE', 'r3', 'r4', 'r5']
+9 ['cbr', 'r5', 10, 12]
+10 ['loadI', 1, 'r6']
+11 ['jumpI', 13]
+13 ['nop']
+14 ['cmp_NE', 'r6', 'r13', 'r14']
+15 ['cbr', 'r14', 16, 26]
+16 ['nop']
+17 ['loadAI', 'rfp', 4, 'r7']
+18 ['loadI', 1, 'r8']
+19 ['sub', 'r7', 'r8', 'r9']
+20 ['storeAI', 'r9', 'rfp', 4]
+21 ['loadAI', 'rfp', 0, 'r10']
+22 ['loadI', 1, 'r11']
+23 ['add', 'r10', 'r11', 'r12']
+24 ['storeAI', 'r12', 'rfp', 0]
+25 ['jumpI', 5]
+5 ['nop']
+6 ['loadAI', 'rfp', 4, 'r3']
+7 ['loadI', 0, 'r4']
+8 ['cmp_NE', 'r3', 'r4', 'r5']
+9 ['cbr', 'r5', 10, 12]
+10 ['loadI', 1, 'r6']
+11 ['jumpI', 13]
+13 ['nop']
+14 ['cmp_NE', 'r6', 'r13', 'r14']
+15 ['cbr', 'r14', 16, 26]
+16 ['nop']
+17 ['loadAI', 'rfp', 4, 'r7']
+18 ['loadI', 1, 'r8']
+19 ['sub', 'r7', 'r8', 'r9']
+20 ['storeAI', 'r9', 'rfp', 4]
+21 ['loadAI', 'rfp', 0, 'r10']
+22 ['loadI', 1, 'r11']
+23 ['add', 'r10', 'r11', 'r12']
+24 ['storeAI', 'r12', 'rfp', 0]
+25 ['jumpI', 5]
+5 ['nop']
+6 ['loadAI', 'rfp', 4, 'r3']
+7 ['loadI', 0, 'r4']
+8 ['cmp_NE', 'r3', 'r4', 'r5']
+9 ['cbr', 'r5', 10, 12]
+10 ['loadI', 1, 'r6']
+11 ['jumpI', 13]
+13 ['nop']
+14 ['cmp_NE', 'r6', 'r13', 'r14']
+15 ['cbr', 'r14', 16, 26]
+16 ['nop']
+17 ['loadAI', 'rfp', 4, 'r7']
+18 ['loadI', 1, 'r8']
+19 ['sub', 'r7', 'r8', 'r9']
+20 ['storeAI', 'r9', 'rfp', 4]
+21 ['loadAI', 'rfp', 0, 'r10']
+22 ['loadI', 1, 'r11']
+23 ['add', 'r10', 'r11', 'r12']
+24 ['storeAI', 'r12', 'rfp', 0]
+25 ['jumpI', 5]
+5 ['nop']
+6 ['loadAI', 'rfp', 4, 'r3']
+7 ['loadI', 0, 'r4']
+8 ['cmp_NE', 'r3', 'r4', 'r5']
+9 ['cbr', 'r5', 10, 12]
+10 ['loadI', 1, 'r6']
+11 ['jumpI', 13]
+13 ['nop']
+14 ['cmp_NE', 'r6', 'r13', 'r14']
+15 ['cbr', 'r14', 16, 26]
+16 ['nop']
+17 ['loadAI', 'rfp', 4, 'r7']
+18 ['loadI', 1, 'r8']
+19 ['sub', 'r7', 'r8', 'r9']
+20 ['storeAI', 'r9', 'rfp', 4]
+21 ['loadAI', 'rfp', 0, 'r10']
+22 ['loadI', 1, 'r11']
+23 ['add', 'r10', 'r11', 'r12']
+24 ['storeAI', 'r12', 'rfp', 0]
+25 ['jumpI', 5]
+5 ['nop']
+6 ['loadAI', 'rfp', 4, 'r3']
+7 ['loadI', 0, 'r4']
+8 ['cmp_NE', 'r3', 'r4', 'r5']
+9 ['cbr', 'r5', 10, 12]
+10 ['loadI', 1, 'r6']
+11 ['jumpI', 13]
+13 ['nop']
+14 ['cmp_NE', 'r6', 'r13', 'r14']
+15 ['cbr', 'r14', 16, 26]
+16 ['nop']
+17 ['loadAI', 'rfp', 4, 'r7']
+18 ['loadI', 1, 'r8']
+19 ['sub', 'r7', 'r8', 'r9']
+20 ['storeAI', 'r9', 'rfp', 4]
+21 ['loadAI', 'rfp', 0, 'r10']
+22 ['loadI', 1, 'r11']
+23 ['add', 'r10', 'r11', 'r12']
+24 ['storeAI', 'r12', 'rfp', 0]
+25 ['jumpI', 5]
+5 ['nop']
+6 ['loadAI', 'rfp', 4, 'r3']
+7 ['loadI', 0, 'r4']
+8 ['cmp_NE', 'r3', 'r4', 'r5']
+9 ['cbr', 'r5', 10, 12]
+12 ['loadI', 0, 'r6']
+13 ['nop']
+14 ['cmp_NE', 'r6', 'r13', 'r14']
+15 ['cbr', 'r14', 16, 26]
+26 ['nop']
+27 ['loadAI', 'rfp', 4, 'r15']
+28 ['loadAI', 'rfp', 0, 'r16']
+29 ['add', 'r15', 'r16', 'r17']
+30 ['storeAI', 'r17', 'rbss', 8]
+31 ['loadAI', 'rbss', 8, 'r18']
+45 loadI
+34 loadAI
+33 nop
+23 storeAI
+22 cmp_NE
+22 cbr
+20 jumpI
+11 add
+10 sub
+count	instruction
+   45	loadI
+   34	loadAI
+   33	nop
+   23	storeAI
+   22	cmp_NE
+   22	cbr
+   20	jumpI
+   11	add
+   10	sub
+
+instructions executed:  220
+register         read:  188 write:  342
+memory           read:   34 write:   23
+
+  register    value
+        r1       10
+       r10       29
+       r11        1
+       r12       30
+       r13        0
+       r14        0
+       r15        0
+       r16       30
+       r17       30
+       r18       30
+        r2       20
+        r3        0
+        r4        0
+        r5        0
+        r6        0
+        r7        1
+        r8        1
+        r9        0
+      rbss        0
+       rfp     1024
+       rpc       31
+       rsp     1024
+
+    memory    value
+00000008       30
+00001024       30
+00001028        0
+00000008 30
+00001024 30
+00001028 0
