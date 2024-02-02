@@ -1,0 +1,44 @@
+int teste1, teste2, teste3;
+
+(float value1, bool b, int value2, int value3, int value4) >= bool! function1
+{
+    int new_value;
+
+    if (b == value1)
+    {
+        new_value = value1 * value2;
+        b = 8;
+    }
+    else
+    {
+        int sla;
+        new_value = value1 / 4;
+    };
+
+    //int sla; // isso daqui, da erro semântico, de acordo com a especificação da etapa4
+    bool b1, b2, b3, b4, b5;
+
+    b = b1 + b2 + (b3 * (b4 / 8));
+    
+    {};
+    {{{{};};};};
+
+    function1(b1, b2, b3, b4);
+
+    //while(b) {};
+    //while(b==b) {{};};
+
+    if (value2) { value1 = value2; };
+
+    return new_value;
+}
+
+() >= int! main
+{
+    float number;
+
+    teste1 = teste2;
+    teste2 = teste3;
+}
+
+int a, b, c, d, e;
