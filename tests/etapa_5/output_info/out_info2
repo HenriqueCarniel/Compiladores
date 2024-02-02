@@ -1,0 +1,41 @@
+0 ['loadI', 10, 'r1']
+1 ['storeAI', 'r1', 'rfp', 4]
+2 ['loadAI', 'rfp', 4, 'r2']
+3 ['xorI', 'r2', -1, 'r3']
+4 ['storeAI', 'r3', 'rfp', 0]
+5 ['loadI', 20, 'r4']
+6 ['storeAI', 'r4', 'rfp', 0]
+7 ['loadAI', 'rfp', 0, 'r5']
+8 ['xorI', 'r5', -1, 'r6']
+9 ['storeAI', 'r6', 'rfp', 4]
+4 storeAI
+2 loadI
+2 loadAI
+2 xorI
+count	instruction
+    4	storeAI
+    2	loadI
+    2	loadAI
+    2	xorI
+
+instructions executed:   10
+register         read:   12 write:   16
+memory           read:    2 write:    4
+
+  register    value
+        r1       10
+        r2       10
+        r3      -11
+        r4       20
+        r5       20
+        r6      -21
+      rbss        0
+       rfp     1024
+       rpc        9
+       rsp     1024
+
+    memory    value
+00001024       20
+00001028      -21
+00001024 20
+00001028 -21

@@ -1,0 +1,27 @@
+0 ['loadAI', 'rbss', 4, 'r32']
+1 ['storeAI', 'r32', 'rbss', 8]
+2 ['loadAI', 'rbss', 0, 'r33']
+3 ['storeAI', 'r33', 'rbss', 4]
+2 loadAI
+2 storeAI
+count	instruction
+    2	loadAI
+    2	storeAI
+
+instructions executed:    4
+register         read:    6 write:    6
+memory           read:    2 write:    2
+
+  register    value
+       r32        0
+       r33        0
+      rbss        0
+       rfp     1024
+       rpc        3
+       rsp     1024
+
+    memory    value
+00000004        0
+00000008        0
+00000004 0
+00000008 0

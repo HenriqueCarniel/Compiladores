@@ -7,14 +7,16 @@ Jose Henrique Lima Marques */
 #include "tree.h"
 #include "lexical_value.h"
 #include "types.h"
+#include "iloc.h"
 
 int yylex(void);
 void yyerror (char const *mensagem);
 int get_line_number();
-extern void *arvore;
+extern Node *arvore;
+extern SymbolTableStack* globalSymbolTableStack;
 
-// O tipo atualmente declarado
-DataType declaredType = DATA_TYPE_UNDECLARED;
+DataType declaredType = DATA_TYPE_UNDECLARED; // O tipo atualmente declarado
+Node* mainFunctionNode = NULL;
 
 %}
 
@@ -72,6 +74,7 @@ DataType declaredType = DATA_TYPE_UNDECLARED;
 %type<Node> function_arguments
 %type<Node> parameters_list
 %type<Node> command_block
+%type<Node> command_block_flow_control_command
 %type<Node> simple_command_list
 %type<Node> command
 %type<Node> variable_declaration
@@ -93,16 +96,17 @@ DataType declaredType = DATA_TYPE_UNDECLARED;
 %%
 
 // ======================== PROGRAMA ========================
-program: elements_list
-{
-    $$ = $1;
-    arvore = $$;
-};
 
 program: %empty 
 {
     $$ = NULL;
     arvore = NULL;
+};
+
+program: elements_list
+{
+    $$ = $1;
+    arvore = $$;
 };
 
 
@@ -111,6 +115,8 @@ elements_list: functions elements_list
 {
     $$ = $1;
     addChild($$, $2);
+    if ($2)
+        addIlocListToIlocList($$->operationList, $2->operationList);
 };
 
 elements_list: global_variables elements_list
@@ -163,8 +169,19 @@ literal: TK_LIT_INT
         DATA_TYPE_INT,
         $1
     );
-    addSymbolValueToGlobalTableStack(value);
+    addSymbolValueToTableStack(globalSymbolTableStack, value);
 
+    ///////////////////////// ETAPA 5 /////////////////////////
+    IlocOperationList* operationList = createIlocOperationList();
+
+    int c1 = atoi($1.label);
+    int r1 = generateRegister();
+
+    IlocOperation operation = generateOperation(OP_LOADI, c1, -1, r1, -1);
+    addOperationToIlocList(operationList, operation);
+
+    $$->outRegister = r1;
+    $$->operationList = operationList;
 };
 
 literal: TK_LIT_FLOAT
@@ -175,7 +192,7 @@ literal: TK_LIT_FLOAT
         DATA_TYPE_FLOAT,
         $1
     );
-    addSymbolValueToGlobalTableStack(value);
+    addSymbolValueToTableStack(globalSymbolTableStack, value);
 };
 
 literal: TK_LIT_FALSE
@@ -186,7 +203,7 @@ literal: TK_LIT_FALSE
         DATA_TYPE_BOOL,
         $1
     );
-    addSymbolValueToGlobalTableStack(value);
+    addSymbolValueToTableStack(globalSymbolTableStack, value);
 };
 
 literal: TK_LIT_TRUE
@@ -197,49 +214,20 @@ literal: TK_LIT_TRUE
         DATA_TYPE_BOOL,
         $1
     );
-    addSymbolValueToGlobalTableStack(value);
+    addSymbolValueToTableStack(globalSymbolTableStack, value);
 };
 
 
 
 // ======================== VARIÁVEIS GLOBAIS ========================
-/*
-
-    Exemplo de redução:
-    T=type
-    IL=identifiers_list
-
-    EMPILHA INT
-    REDUZ T->INT
-    EMPILHA X1
-    EMPILHA ,
-    EMPILHA X2
-    EMPILHA ,
-    EMPILHA X3
-    REDUZ IL->X3
-    REDUZ IL->X2, IL
-    REDUZ IL->X1, IL
-
-                                |   int x1, x2, x3;
-    1ª redução: T->int          |   T x1, x2, x3
-    2ª redução: IL->x3          |   T x1, x2, IL
-    3ª redução: IL->x2,IL       |   T x1, IL
-    4ª redução: IL->x1,IL       |   T IL
-    5ª redução: GV-> T IL       |   GV
-
-    Logo, tipo é reduzido primeiro
-
-*/
-
 
 global_variables: type identifiers_list ';'
 {
     $$ = NULL;
-    removeNode($2);
     
     // Não tem mais um tipo sendo declarado
     declaredType = DATA_TYPE_UNDECLARED;
-    };
+};
 
 identifiers_list: TK_IDENTIFICADOR
 {
@@ -250,9 +238,8 @@ identifiers_list: TK_IDENTIFICADOR
         declaredType,
         $1
     );
-    addSymbolValueToGlobalTableStack(value);
-    
-    };
+    addSymbolValueToTableStack(globalSymbolTableStack, value);
+};
 
 identifiers_list: TK_IDENTIFICADOR ',' identifiers_list
 {
@@ -263,12 +250,11 @@ identifiers_list: TK_IDENTIFICADOR ',' identifiers_list
         declaredType,
         $1
     );
-    addSymbolValueToGlobalTableStack(value);
-
-    };
-
+    addSymbolValueToTableStack(globalSymbolTableStack, value);
+};
 
 
+// TODO: implementar toda essa parte de funções???
 // ======================== FUNÇÕES ========================
 functions: header body
 {
@@ -280,10 +266,18 @@ functions: header body
     // tendo somente o frame global
     popGlobalStack();
 
+    if ($2)
+        $$->operationList = $2->operationList;
+
+    if (strncmp($1->lexicalValue.label, "main", 4) == 0)
+        mainFunctionNode = $$;
+    
 };
 
 header: function_arguments TK_OC_GE type '!' TK_IDENTIFICADOR
 {   
+    $$ = createNodeFromLexicalValue($5, $3);
+
     // Adiciona identificador à tabela de tipos
     SymbolTableEntryValue value = createSymbolTableEntryValue(
         SYMBOL_NATURE_FUNCTION,
@@ -291,28 +285,14 @@ header: function_arguments TK_OC_GE type '!' TK_IDENTIFICADOR
         $5
     );
     // Porém, devido ao fato de estarmos no escopo dos parâmetros,
-    // o identificador deve ir na tabela abaixo (global)
-    addSymbolValueToBelowGlobalTableStack(value);
-
-    $$ = createNodeFromLexicalValue($5, $3);
-
+    //o identificador deve ir na tabela abaixo (global)
+    addSymbolValueToBelowTableStack(globalSymbolTableStack, value);
 };
 
 body: command_block
 {   
     $$ = $1;
 };
-
-
-
-// Lista de parâmetros
-
-// O início de uma lista de parâmetros de uma função
-// leva a criação de um novo escopo onde estarão os argumentos
-function_argument_begin: '('
-{
-    addTableToGlobalStack(createSymbolTable());
-}
 
 function_arguments: function_argument_begin ')'
 {
@@ -321,8 +301,15 @@ function_arguments: function_argument_begin ')'
 
 function_arguments: function_argument_begin parameters_list ')'
 {
-    $$ = NULL;
+    $$ = $2;
 };
+
+// O início de uma lista de parâmetros de uma função
+// leva a criação de um novo escopo onde estarão os argumentos
+function_argument_begin: '('
+{
+    addTableToGlobalStack(createSymbolTable());
+}
 
 parameters_list: type TK_IDENTIFICADOR
 {
@@ -334,8 +321,7 @@ parameters_list: type TK_IDENTIFICADOR
         declaredType,
         $2
     );
-    addSymbolValueToGlobalTableStack(value);
-
+    addSymbolValueToTableStack(globalSymbolTableStack, value);
 
     freeLexicalValue($2);
 };
@@ -350,7 +336,7 @@ parameters_list: type TK_IDENTIFICADOR ',' parameters_list
         declaredType,
         $2
     );
-    addSymbolValueToGlobalTableStack(value);
+    addSymbolValueToTableStack(globalSymbolTableStack, value);
 
     freeLexicalValue($2);
 };
@@ -358,15 +344,6 @@ parameters_list: type TK_IDENTIFICADOR ',' parameters_list
 
 
 // ======================== BLOCO DE COMANDO ========================
-command_block_begin: '{'
-{
-    addTableToGlobalStack(createSymbolTable());
-};
-
-command_block_end: '}'
-{
-    popGlobalStack();
-};
 
 command_block: command_block_begin command_block_end
 {
@@ -377,6 +354,28 @@ command_block: command_block_begin simple_command_list command_block_end
 {
     $$ = $2;
 };
+
+command_block_begin: '{'
+{
+    addTableToGlobalStack(createSymbolTable());
+};
+
+command_block_end: '}'
+{
+    popGlobalStack();
+};
+
+// Isso foi feito pois os blocos de comandos de fluxo de controle não geram um novo escopo,
+//de acordo com a especificação dada pelo professor
+command_block_flow_control_command: '{' '}'
+{
+    $$ = NULL;
+}
+
+command_block_flow_control_command: '{' simple_command_list '}'
+{
+    $$ = $2;
+}
 
 simple_command_list: command
 {
@@ -389,6 +388,15 @@ simple_command_list: command simple_command_list
     {
         $$ = $1;
         addChild($$, $2);
+
+        if ($1->operationList)
+        {
+            addIlocListToIlocList($1->operationList, $2->operationList);
+        }
+        else
+        {
+            $$->operationList = $2->operationList;
+        }
     }
     else
     {
@@ -448,6 +456,28 @@ attribution_command: TK_IDENTIFICADOR '=' expression
     $$ = createNodeFromLabel($2, type);
     addChild($$, createNodeFromLexicalValue($1, type));
     addChild($$, $3);
+
+    ///////////////////////// ETAPA 5 /////////////////////////
+    IlocOperationList* operationList = createListFromOtherList($3->operationList);
+    SymbolTableEntryValue symbol = getSymbolFromStackByKey($1.label);
+
+    int address = symbol.position;
+    int r1 = $3->outRegister;
+
+    IlocOperation operation;
+    
+    if (symbol.isGlobal)
+    {
+        operation = generateOperation(OP_STOREAI_GLOBAL, r1, -1, address, -1);
+    }
+    else
+    {
+        operation = generateOperation(OP_STOREAI_LOCAL, r1, -1, address, -1);
+    }
+
+    addOperationToIlocList(operationList, operation);
+
+    $$->operationList = operationList;
 };
 
 
@@ -468,6 +498,14 @@ function_call: TK_IDENTIFICADOR '(' expression_list ')'
 
     $$ = createNodeToFunctionCall($1, type);
     addChild($$, $3);
+
+    // nesse caso, o código da lista de expressões é adicionado no código
+    // TODO: perguntar se isso é realmente necessário, pois de qualquer forma, registradores e labels
+    //serão gerados para essas expressões, pois vamos gerando código para elas sem saber que depois
+    //farão parte de uma chamada de função
+
+    // RESPOSTA: não precisa
+    //$$->operationList = $3->operationList;
 };
 
 expression_list: expression
@@ -479,6 +517,9 @@ expression_list: expression ',' expression_list
 {
     $$ = $1;
     addChild($$, $3);
+
+    IlocOperationList* operationList = joinOperationLists($1->operationList, $3->operationList);
+    $$->operationList = operationList;
 };
 
 
@@ -488,31 +529,183 @@ return_command: TK_PR_RETURN expression
 {
     $$ = createNodeFromLabel($1, inferTypeFromNode($2));
     addChild($$, $2);
+
+    ///////////////////////// ETAPA 5 /////////////////////////
+
+    // TODO: Mesmo problema que tínhamos na chamada de função, realmente precisamos gerar código
+    //para isso?
+
+    // RESPOSTA: Não precisa
+    //$$->operationList = $2->operationList;
 };
 
 
 
 // Comando de controle de fluxo
-flow_control_command: TK_PR_IF '(' expression ')' '{' simple_command_list '}'
+flow_control_command: TK_PR_IF '(' expression ')' command_block_flow_control_command
 {
     $$ = createNodeFromLabel($1, inferTypeFromNode($3));
     addChild($$, $3);
-    addChild($$, $6);
-}; 
+    addChild($$, $5);
 
-flow_control_command: TK_PR_IF '(' expression ')' '{' simple_command_list '}' TK_PR_ELSE '{' simple_command_list '}'
-{
-    $$ = createNodeFromLabel($1, inferTypeFromNode($3));
-    addChild($$, $3);
-    addChild($$, $6);
-    addChild($$, $10);
+    int registerExpression = $3->outRegister;
+    int registerFalse = generateRegister();
+    int registerCmp = generateRegister();
+
+    int labelTrue = generateLabel();
+    int labelFalse = generateLabel();
+
+    IlocOperationList* operationList = createListFromOtherList($3->operationList);
+
+    // loadI 0 => registerFalse
+    IlocOperation operationLoadFalse = generateOperation(OP_LOADI, 0, -1, registerFalse, -1);
+    addOperationToIlocList(operationList, operationLoadFalse);
+
+    // cmp_NE registerExpression, registerFalse -> registerCmp
+    IlocOperation operationCmpFalse = generateOperation(OP_CMP_NE, registerExpression, registerFalse, registerCmp, -1);
+    addOperationToIlocList(operationList, operationCmpFalse);
+
+    // cbr registerCmp -> labelTrue, labelFalse
+    IlocOperation operationCbr = generateOperation(OP_CBR, registerCmp, -1, labelTrue, labelFalse);
+    addOperationToIlocList(operationList, operationCbr);
+
+    // "labelTrue": nop
+    IlocOperation operationNopTrue = generateNopOperation();
+    operationNopTrue = addLabelToOperation(operationNopTrue, labelTrue);
+    addOperationToIlocList(operationList, operationNopTrue);
+
+    // -- CÓDIGO DO BLOCO DE COMANDOS --
+    if ($5)
+    {
+        addIlocListToIlocList(operationList, $5->operationList);
+    }
+
+    // "labelFalse": nop
+    IlocOperation operationNopFalse = generateNopOperation();
+    operationNopFalse = addLabelToOperation(operationNopFalse, labelFalse);
+    addOperationToIlocList(operationList, operationNopFalse);
+
+    $$->operationList = operationList;
 };
 
-flow_control_command: TK_PR_WHILE '(' expression ')' '{' simple_command_list '}'
+flow_control_command: TK_PR_IF '(' expression ')' command_block_flow_control_command TK_PR_ELSE command_block_flow_control_command
 {
     $$ = createNodeFromLabel($1, inferTypeFromNode($3));
     addChild($$, $3);
-    addChild($$, $6);
+    addChild($$, $5);
+    addChild($$, $7);
+
+    int registerExpression = $3->outRegister;
+    int registerFalse = generateRegister();
+    int registerCmp = generateRegister();
+
+    int labelTrue = generateLabel();
+    int labelFalse = generateLabel();
+    int labelEnd = generateLabel();
+
+    IlocOperationList* operationList = createListFromOtherList($3->operationList);
+
+    // loadI 0 => registerFalse
+    IlocOperation operationLoadFalse = generateOperation(OP_LOADI, 0, -1, registerFalse, -1);
+    addOperationToIlocList(operationList, operationLoadFalse);
+
+    // cmp_NE registerExpression, registerFalse -> registerCmp
+    IlocOperation operationCmpFalse = generateOperation(OP_CMP_NE, registerExpression, registerFalse, registerCmp, -1);
+    addOperationToIlocList(operationList, operationCmpFalse);
+
+    // cbr registerCmp -> labelTrue, labelFalse
+    IlocOperation operationCbr = generateOperation(OP_CBR, registerCmp, -1, labelTrue, labelFalse);
+    addOperationToIlocList(operationList, operationCbr);
+
+    // "labelTrue": nop
+    IlocOperation operationNopTrue = generateNopOperation();
+    operationNopTrue = addLabelToOperation(operationNopTrue, labelTrue);
+    addOperationToIlocList(operationList, operationNopTrue);
+
+    // -- CÓDIGO DO BLOCO DE COMANDOS VERDADEIRO --
+    // jumpI -> labelEnd
+    if ($5)
+    {
+        addIlocListToIlocList(operationList, $5->operationList);
+    }
+    IlocOperation operationJumpAfterCode = generateOperation(OP_JUMPI, labelEnd, -1, -1, -1);
+    addOperationToIlocList(operationList, operationJumpAfterCode);
+
+    // "labelFalse": nop
+    IlocOperation operationNopFalse = generateNopOperation();
+    operationNopFalse = addLabelToOperation(operationNopFalse, labelFalse);
+    addOperationToIlocList(operationList, operationNopFalse);
+
+    // -- CÓDIGO DO BLOCO DE COMANDOS FALSO --
+    if ($7)
+    {
+        addIlocListToIlocList(operationList, $7->operationList);
+    }    
+
+    // "labelEnd": nop
+    IlocOperation operationNopEnd = generateNopOperation();
+    operationNopEnd = addLabelToOperation(operationNopEnd, labelEnd);
+    addOperationToIlocList(operationList, operationNopEnd);
+
+    $$->operationList = operationList;
+};
+
+flow_control_command: TK_PR_WHILE '(' expression ')' command_block_flow_control_command
+{
+    $$ = createNodeFromLabel($1, inferTypeFromNode($3));
+    addChild($$, $3);
+    addChild($$, $5);
+
+    int registerExpression = $3->outRegister;
+    int registerFalse = generateRegister();
+    int registerCmp = generateRegister();
+
+    int labelComparation = generateLabel();
+    int labelTrue = generateLabel();
+    int labelFalse = generateLabel();
+
+    IlocOperationList* operationList = createIlocOperationList();
+
+    // loadI 0 => registerFalse
+    IlocOperation operationLoadFalse = generateOperation(OP_LOADI, 0, -1, registerFalse, -1);
+    addOperationToIlocList(operationList, operationLoadFalse);
+
+    // "labelComparation": nop
+    IlocOperation operationNopComparation = generateNopOperation();
+    operationNopComparation = addLabelToOperation(operationNopComparation, labelComparation);
+    addOperationToIlocList(operationList, operationNopComparation);
+
+    // -- GERA VALOR DO CONDICIONAL E SALVA EM registerExpression --
+    addIlocListToIlocList(operationList, $3->operationList);
+
+    // cmp_NE registerExpression, registerFalse -> registerCmp
+    // cbr registerCmp -> labelTrue, labelFalse
+    IlocOperation operationCmpFalse = generateOperation(OP_CMP_NE, registerExpression, registerFalse, registerCmp, -1);
+    addOperationToIlocList(operationList, operationCmpFalse);
+    IlocOperation operationCbr = generateOperation(OP_CBR, registerCmp, -1, labelTrue, labelFalse);
+    addOperationToIlocList(operationList, operationCbr);
+    
+    // "labelTrue": nop
+    IlocOperation operationNopTrue = generateNopOperation();
+    operationNopTrue = addLabelToOperation(operationNopTrue, labelTrue);
+    addOperationToIlocList(operationList, operationNopTrue);
+
+    // -- CÓDIGO DO BLOCO DE COMANDOS --
+    if ($5)
+    {
+        addIlocListToIlocList(operationList, $5->operationList);
+    }
+    
+    // jumpI -> labelComparation
+    IlocOperation operationJumpAfterCode = generateOperation(OP_JUMPI, labelComparation, -1, -1, -1);
+    addOperationToIlocList(operationList, operationJumpAfterCode);
+
+    // "labelFalse": nop
+    IlocOperation operationNopFalse = generateNopOperation();
+    operationNopFalse = addLabelToOperation(operationNopFalse, labelFalse);
+    addOperationToIlocList(operationList, operationNopFalse);
+
+    $$->operationList = operationList;
 };
 
 
@@ -530,6 +723,19 @@ expression_grade_eight: expression_grade_eight TK_OC_OR expression_grade_seven
     $$ = createNodeFromLabel($2, inferTypeFromNodes($1, $3));
     addChild($$, $1);
     addChild($$, $3);
+
+    ///////////////////////// ETAPA 5 /////////////////////////
+    IlocOperationList* operationList = joinOperationLists($1->operationList, $3->operationList);
+
+    int r1 = $1->outRegister;
+    int r2 = $3->outRegister;
+    int r3 = generateRegister();
+
+    IlocOperation operation = generateOperation(OP_OR, r1, r2, r3, -1);
+    addOperationToIlocList(operationList, operation);
+
+    $$->outRegister = r3;
+    $$->operationList = operationList;
 };
 
 expression_grade_eight: expression_grade_seven
@@ -544,6 +750,19 @@ expression_grade_seven: expression_grade_seven TK_OC_AND expression_grade_six
     $$ = createNodeFromLabel($2, inferTypeFromNodes($1, $3));
     addChild($$, $1);
     addChild($$, $3);
+
+    ///////////////////////// ETAPA 5 /////////////////////////
+    IlocOperationList* operationList = joinOperationLists($1->operationList, $3->operationList);
+
+    int r1 = $1->outRegister;
+    int r2 = $3->outRegister;
+    int r3 = generateRegister();
+
+    IlocOperation operation = generateOperation(OP_AND, r1, r2, r3, -1);
+    addOperationToIlocList(operationList, operation);
+
+    $$->outRegister = r3;
+    $$->operationList = operationList;
 };
 
 expression_grade_seven: expression_grade_six
@@ -558,6 +777,43 @@ expression_grade_six: expression_grade_six TK_OC_EQ expression_grade_five
     $$ = createNodeFromLabel($2, inferTypeFromNodes($1, $3));
     addChild($$, $1);
     addChild($$, $3);
+
+    ///////////////////////// ETAPA 5 /////////////////////////
+    IlocOperationList* operationList = joinOperationLists($1->operationList, $3->operationList);
+
+    int r1 = $1->outRegister;
+    int r2 = $3->outRegister;
+    int r3 = generateRegister();
+    int r4 = generateRegister();
+    int labelTrue = generateLabel();
+    int labelFalse = generateLabel();
+    int labelEnd = generateLabel();
+
+    IlocOperation operationCmpEQ = generateOperation(OP_CMP_EQ, r1, r2, r3, -1);
+    addOperationToIlocList(operationList, operationCmpEQ);
+
+    IlocOperation operationCbr = generateOperation(OP_CBR, r3, -1, labelTrue, labelFalse);
+    addOperationToIlocList(operationList, operationCbr);
+
+    // IF TRUE
+    IlocOperation operationTrue = generateOperation(OP_LOADI, 1, -1, r4, -1);
+    operationTrue = addLabelToOperation(operationTrue, labelTrue);
+    IlocOperation operationJumpTrue = generateOperation(OP_JUMPI, labelEnd, -1, -1, -1);
+    addOperationToIlocList(operationList, operationTrue);
+    addOperationToIlocList(operationList, operationJumpTrue);
+
+    // ELSE
+    IlocOperation operationFalse = generateOperation(OP_LOADI, 0, -1, r4, -1);
+    operationFalse = addLabelToOperation(operationFalse, labelFalse);
+    addOperationToIlocList(operationList, operationFalse);
+
+    // NOP
+    IlocOperation operationNop = generateNopOperation();
+    operationNop = addLabelToOperation(operationNop, labelEnd);
+    addOperationToIlocList(operationList, operationNop);
+
+    $$->outRegister = r4;
+    $$->operationList = operationList;
 };
 
 expression_grade_six: expression_grade_six TK_OC_NE expression_grade_five
@@ -565,6 +821,43 @@ expression_grade_six: expression_grade_six TK_OC_NE expression_grade_five
     $$ = createNodeFromLabel($2, inferTypeFromNodes($1, $3));
     addChild($$, $1);
     addChild($$, $3);
+
+    ///////////////////////// ETAPA 5 /////////////////////////
+    IlocOperationList* operationList = joinOperationLists($1->operationList, $3->operationList);
+
+    int r1 = $1->outRegister;
+    int r2 = $3->outRegister;
+    int r3 = generateRegister();
+    int r4 = generateRegister();
+    int labelTrue = generateLabel();
+    int labelFalse = generateLabel();
+    int labelEnd = generateLabel();
+
+    IlocOperation operationCmpNE = generateOperation(OP_CMP_NE, r1, r2, r3, -1);
+    addOperationToIlocList(operationList, operationCmpNE);
+
+    IlocOperation operationCbr = generateOperation(OP_CBR, r3, -1, labelTrue, labelFalse);
+    addOperationToIlocList(operationList, operationCbr);
+
+    // IF TRUE
+    IlocOperation operationTrue = generateOperation(OP_LOADI, 1, -1, r4, -1);
+    operationTrue = addLabelToOperation(operationTrue, labelTrue);
+    IlocOperation operationJumpTrue = generateOperation(OP_JUMPI, labelEnd, -1, -1, -1);
+    addOperationToIlocList(operationList, operationTrue);
+    addOperationToIlocList(operationList, operationJumpTrue);
+
+    // ELSE
+    IlocOperation operationFalse = generateOperation(OP_LOADI, 0, -1, r4, -1);
+    operationFalse = addLabelToOperation(operationFalse, labelFalse);
+    addOperationToIlocList(operationList, operationFalse);
+
+    // NOP
+    IlocOperation operationNop = generateNopOperation();
+    operationNop = addLabelToOperation(operationNop, labelEnd);
+    addOperationToIlocList(operationList, operationNop);
+
+    $$->outRegister = r4;
+    $$->operationList = operationList;
 };
 
 expression_grade_six: expression_grade_five
@@ -579,6 +872,43 @@ expression_grade_five: expression_grade_five '<' expression_grade_four
     $$ = createNodeFromLabel($2, inferTypeFromNodes($1, $3));
     addChild($$, $1);
     addChild($$, $3);
+
+    ///////////////////////// ETAPA 5 /////////////////////////
+    IlocOperationList* operationList = joinOperationLists($1->operationList, $3->operationList);
+
+    int r1 = $1->outRegister;
+    int r2 = $3->outRegister;
+    int r3 = generateRegister();
+    int r4 = generateRegister();
+    int labelTrue = generateLabel();
+    int labelFalse = generateLabel();
+    int labelEnd = generateLabel();
+
+    IlocOperation operationCmpLT = generateOperation(OP_CMP_LT, r1, r2, r3, -1);
+    addOperationToIlocList(operationList, operationCmpLT);
+
+    IlocOperation operationCbr = generateOperation(OP_CBR, r3, -1, labelTrue, labelFalse);
+    addOperationToIlocList(operationList, operationCbr);
+
+    // IF TRUE
+    IlocOperation operationTrue = generateOperation(OP_LOADI, 1, -1, r4, -1);
+    operationTrue = addLabelToOperation(operationTrue, labelTrue);
+    IlocOperation operationJumpTrue = generateOperation(OP_JUMPI, labelEnd, -1, -1, -1);
+    addOperationToIlocList(operationList, operationTrue);
+    addOperationToIlocList(operationList, operationJumpTrue);
+
+    // ELSE
+    IlocOperation operationFalse = generateOperation(OP_LOADI, 0, -1, r4, -1);
+    operationFalse = addLabelToOperation(operationFalse, labelFalse);
+    addOperationToIlocList(operationList, operationFalse);
+
+    // NOP
+    IlocOperation operationNop = generateNopOperation();
+    operationNop = addLabelToOperation(operationNop, labelEnd);
+    addOperationToIlocList(operationList, operationNop);
+
+    $$->outRegister = r4;
+    $$->operationList = operationList;
 };
 
 expression_grade_five: expression_grade_five '>' expression_grade_four
@@ -586,6 +916,43 @@ expression_grade_five: expression_grade_five '>' expression_grade_four
     $$ = createNodeFromLabel($2, inferTypeFromNodes($1, $3));
     addChild($$, $1);
     addChild($$, $3);
+
+    ///////////////////////// ETAPA 5 /////////////////////////
+    IlocOperationList* operationList = joinOperationLists($1->operationList, $3->operationList);
+
+    int r1 = $1->outRegister;
+    int r2 = $3->outRegister;
+    int r3 = generateRegister();
+    int r4 = generateRegister();
+    int labelTrue = generateLabel();
+    int labelFalse = generateLabel();
+    int labelEnd = generateLabel();
+
+    IlocOperation operationCmpGT = generateOperation(OP_CMP_GT, r1, r2, r3, -1);
+    addOperationToIlocList(operationList, operationCmpGT);
+
+    IlocOperation operationCbr = generateOperation(OP_CBR, r3, -1, labelTrue, labelFalse);
+    addOperationToIlocList(operationList, operationCbr);
+
+    // IF TRUE
+    IlocOperation operationTrue = generateOperation(OP_LOADI, 1, -1, r4, -1);
+    operationTrue = addLabelToOperation(operationTrue, labelTrue);
+    IlocOperation operationJumpTrue = generateOperation(OP_JUMPI, labelEnd, -1, -1, -1);
+    addOperationToIlocList(operationList, operationTrue);
+    addOperationToIlocList(operationList, operationJumpTrue);
+
+    // ELSE
+    IlocOperation operationFalse = generateOperation(OP_LOADI, 0, -1, r4, -1);
+    operationFalse = addLabelToOperation(operationFalse, labelFalse);
+    addOperationToIlocList(operationList, operationFalse);
+
+    // NOP
+    IlocOperation operationNop = generateNopOperation();
+    operationNop = addLabelToOperation(operationNop, labelEnd);
+    addOperationToIlocList(operationList, operationNop);
+
+    $$->outRegister = r4;
+    $$->operationList = operationList;
 };
 
 expression_grade_five: expression_grade_five TK_OC_LE expression_grade_four
@@ -593,6 +960,43 @@ expression_grade_five: expression_grade_five TK_OC_LE expression_grade_four
     $$ = createNodeFromLabel($2, inferTypeFromNodes($1, $3));
     addChild($$, $1);
     addChild($$, $3);
+
+    ///////////////////////// ETAPA 5 /////////////////////////
+    IlocOperationList* operationList = joinOperationLists($1->operationList, $3->operationList);
+
+    int r1 = $1->outRegister;
+    int r2 = $3->outRegister;
+    int r3 = generateRegister();
+    int r4 = generateRegister();
+    int labelTrue = generateLabel();
+    int labelFalse = generateLabel();
+    int labelEnd = generateLabel();
+
+    IlocOperation operationCmpLE = generateOperation(OP_CMP_LE, r1, r2, r3, -1);
+    addOperationToIlocList(operationList, operationCmpLE);
+
+    IlocOperation operationCbr = generateOperation(OP_CBR, r3, -1, labelTrue, labelFalse);
+    addOperationToIlocList(operationList, operationCbr);
+
+    // IF TRUE
+    IlocOperation operationTrue = generateOperation(OP_LOADI, 1, -1, r4, -1);
+    operationTrue = addLabelToOperation(operationTrue, labelTrue);
+    IlocOperation operationJumpTrue = generateOperation(OP_JUMPI, labelEnd, -1, -1, -1);
+    addOperationToIlocList(operationList, operationTrue);
+    addOperationToIlocList(operationList, operationJumpTrue);
+
+    // ELSE
+    IlocOperation operationFalse = generateOperation(OP_LOADI, 0, -1, r4, -1);
+    operationFalse = addLabelToOperation(operationFalse, labelFalse);
+    addOperationToIlocList(operationList, operationFalse);
+
+    // NOP
+    IlocOperation operationNop = generateNopOperation();
+    operationNop = addLabelToOperation(operationNop, labelEnd);
+    addOperationToIlocList(operationList, operationNop);
+
+    $$->outRegister = r4;
+    $$->operationList = operationList;
 };
 
 expression_grade_five: expression_grade_five TK_OC_GE expression_grade_four
@@ -600,6 +1004,43 @@ expression_grade_five: expression_grade_five TK_OC_GE expression_grade_four
     $$ = createNodeFromLabel($2, inferTypeFromNodes($1, $3));
     addChild($$, $1);
     addChild($$, $3);
+
+    ///////////////////////// ETAPA 5 /////////////////////////
+    IlocOperationList* operationList = joinOperationLists($1->operationList, $3->operationList);
+
+    int r1 = $1->outRegister;
+    int r2 = $3->outRegister;
+    int r3 = generateRegister();
+    int r4 = generateRegister();
+    int labelTrue = generateLabel();
+    int labelFalse = generateLabel();
+    int labelEnd = generateLabel();
+
+    IlocOperation operationCmpGE = generateOperation(OP_CMP_GE, r1, r2, r3, -1);
+    addOperationToIlocList(operationList, operationCmpGE);
+
+    IlocOperation operationCbr = generateOperation(OP_CBR, r3, -1, labelTrue, labelFalse);
+    addOperationToIlocList(operationList, operationCbr);
+
+    // IF TRUE
+    IlocOperation operationTrue = generateOperation(OP_LOADI, 1, -1, r4, -1);
+    operationTrue = addLabelToOperation(operationTrue, labelTrue);
+    IlocOperation operationJumpTrue = generateOperation(OP_JUMPI, labelEnd, -1, -1, -1);
+    addOperationToIlocList(operationList, operationTrue);
+    addOperationToIlocList(operationList, operationJumpTrue);
+
+    // ELSE
+    IlocOperation operationFalse = generateOperation(OP_LOADI, 0, -1, r4, -1);
+    operationFalse = addLabelToOperation(operationFalse, labelFalse);
+    addOperationToIlocList(operationList, operationFalse);
+
+    // NOP
+    IlocOperation operationNop = generateNopOperation();
+    operationNop = addLabelToOperation(operationNop, labelEnd);
+    addOperationToIlocList(operationList, operationNop);
+
+    $$->outRegister = r4;
+    $$->operationList = operationList;
 };
 
 expression_grade_five: expression_grade_four
@@ -614,6 +1055,19 @@ expression_grade_four: expression_grade_four '+' expression_grade_three
     $$ = createNodeFromLabel($2, inferTypeFromNodes($1, $3));
     addChild($$, $1);
     addChild($$, $3);
+
+    ///////////////////////// ETAPA 5 /////////////////////////
+    IlocOperationList* operationList = joinOperationLists($1->operationList, $3->operationList);
+
+    int r1 = $1->outRegister;
+    int r2 = $3->outRegister;
+    int r3 = generateRegister();
+
+    IlocOperation operation = generateOperation(OP_ADD, r1, r2, r3, -1);
+    addOperationToIlocList(operationList, operation);
+
+    $$->outRegister = r3;
+    $$->operationList = operationList;
 };
 
 expression_grade_four: expression_grade_four '-' expression_grade_three
@@ -621,6 +1075,19 @@ expression_grade_four: expression_grade_four '-' expression_grade_three
     $$ = createNodeFromLabel($2, inferTypeFromNodes($1, $3));
     addChild($$, $1);
     addChild($$, $3);
+
+    ///////////////////////// ETAPA 5 /////////////////////////
+    IlocOperationList* operationList = joinOperationLists($1->operationList, $3->operationList);
+
+    int r1 = $1->outRegister;
+    int r2 = $3->outRegister;
+    int r3 = generateRegister();
+
+    IlocOperation operation = generateOperation(OP_SUB, r1, r2, r3, -1);
+    addOperationToIlocList(operationList, operation);
+
+    $$->outRegister = r3;
+    $$->operationList = operationList;
 };
 
 expression_grade_four: expression_grade_three
@@ -635,6 +1102,19 @@ expression_grade_three: expression_grade_three '*' expression_grade_two
     $$ = createNodeFromLabel($2, inferTypeFromNodes($1, $3));
     addChild($$, $1);
     addChild($$, $3);
+
+    ///////////////////////// ETAPA 5 /////////////////////////
+    IlocOperationList* operationList = joinOperationLists($1->operationList, $3->operationList);
+
+    int r1 = $1->outRegister;
+    int r2 = $3->outRegister;
+    int r3 = generateRegister();
+
+    IlocOperation operation = generateOperation(OP_MULT, r1, r2, r3, -1);
+    addOperationToIlocList(operationList, operation);
+
+    $$->outRegister = r3;
+    $$->operationList = operationList;
 };
 
 expression_grade_three: expression_grade_three '/' expression_grade_two
@@ -642,6 +1122,19 @@ expression_grade_three: expression_grade_three '/' expression_grade_two
     $$ = createNodeFromLabel($2, inferTypeFromNodes($1, $3));
     addChild($$, $1);
     addChild($$, $3);
+
+    ///////////////////////// ETAPA 5 /////////////////////////
+    IlocOperationList* operationList = joinOperationLists($1->operationList, $3->operationList);
+
+    int r1 = $1->outRegister;
+    int r2 = $3->outRegister;
+    int r3 = generateRegister();
+
+    IlocOperation operation = generateOperation(OP_DIV, r1, r2, r3, -1);
+    addOperationToIlocList(operationList, operation);
+
+    $$->outRegister = r3;
+    $$->operationList = operationList;
 };
 
 expression_grade_three: expression_grade_three '%' expression_grade_two
@@ -662,12 +1155,37 @@ expression_grade_two: '-' expression_grade_one
 {
     $$ = createNodeFromLabel($1, inferTypeFromNode($2));
     addChild($$, $2);
+
+    ///////////////////////// ETAPA 5 /////////////////////////
+    IlocOperationList* operationList = createListFromOtherList($2->operationList);
+
+    int r1 = $2->outRegister;
+    int r2 = generateRegister();
+
+    IlocOperation operation = generateOperation(OP_NEG, r1, -1, r2, -1);
+    addOperationToIlocList(operationList, operation);
+
+    $$->outRegister = r2;
+    $$->operationList = operationList;
 };
 
 expression_grade_two: '!' expression_grade_one
 {
     $$ = createNodeFromLabel($1, inferTypeFromNode($2));
     addChild($$, $2);
+
+    // TODO: Como fazer essa operação???
+    ///////////////////////// ETAPA 5 /////////////////////////
+    IlocOperationList* operationList = createListFromOtherList($2->operationList);
+
+    int r1 = $2->outRegister;
+    int r2 = generateRegister();
+
+    IlocOperation operation = generateOperation(OP_NEG_LOG, r1, -1, r2, -1);
+    addOperationToIlocList(operationList, operation);
+
+    $$->outRegister = r2;
+    $$->operationList = operationList;
 };
 
 expression_grade_two: expression_grade_one
@@ -684,6 +1202,29 @@ expression_grade_one: TK_IDENTIFICADOR
     checkIdentifierIsVariable($1);
 
     $$ = createNodeFromLexicalValue($1, type);
+
+    ///////////////////////// ETAPA 5 /////////////////////////
+    IlocOperationList* operationList = createIlocOperationList();
+    SymbolTableEntryValue symbol = getSymbolFromStackByKey($1.label);
+
+    int address = symbol.position;
+    int r1 = generateRegister();
+
+    IlocOperation operation;
+    
+    if (symbol.isGlobal)
+    {
+        operation = generateOperation(OP_LOADAI_GLOBAL, address, -1, r1, -1);
+    }
+    else
+    {
+        operation = generateOperation(OP_LOADAI_LOCAL, address, -1, r1, -1);
+    }
+
+    addOperationToIlocList(operationList, operation);
+
+    $$->outRegister = r1;
+    $$->operationList = operationList;
 };
 
 expression_grade_one: literal

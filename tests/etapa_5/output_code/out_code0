@@ -1,0 +1,4 @@
+loadAI rbss, 4 => r32 
+storeAI r32 => rbss, 8 
+loadAI rbss, 0 => r33 
+storeAI r33 => rbss, 4 

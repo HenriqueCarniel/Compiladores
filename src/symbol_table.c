@@ -2,7 +2,6 @@
 #include "errors.h"
 
 /*
-
     ESTRUTURA DA PILHA DE TABELAS
 
                                 SymbolTableStack -> SymbolTable
@@ -10,98 +9,102 @@
                                 SymbolTableStack -> SymbolTable
                                     v
     globalSymbolTableStack ->   SymbolTableStack -> SymbolTable
-
 */
 
-
 //////////////////////////////////////////////////////////////
-
-
 //          CRIAÇÃO DE ESTRUTURAS DE DADOS
-
-
 //////////////////////////////////////////////////////////////
 
-/*
-
-    Cria a pilha global de símbolos
-
-*/
-
+// Cria a pilha global de símbolos
 void initGlobalSymbolStack()
 {
     globalSymbolTableStack = createSymbolTableStack();
     globalSymbolTableStack->symbolTable = createSymbolTable();
+    globalSymbolTableStack->isGlobal = 1;
+    globalSymbolTableStack->lastPosition = 0;
 }
 
 void addTableToGlobalStack(SymbolTable* symbolTable)
 {
-
     SymbolTableStack* newStackFrame = createSymbolTableStack();
     // Novo frame aponta para o topo da pilha global
     newStackFrame->nextItem = globalSymbolTableStack;
     newStackFrame->symbolTable = symbolTable;
+
+    ///////////////////////// ETAPA 5 /////////////////////////
+    if (globalSymbolTableStack->isGlobal)
+    {
+        newStackFrame->lastPosition = 0;
+    }
+    else
+    {
+        symbolTable->lastPosition = globalSymbolTableStack->lastPosition;
+        newStackFrame->lastPosition = globalSymbolTableStack->lastPosition;
+    }
+
     // O frame se torna o novo topo
     globalSymbolTableStack = newStackFrame;
 
-    // printf("EMPILHANDO NOVO ESCOPO\n");
-    // printf("======================\n");
-
+    #ifdef DEBUG
+        printf("EMPILHANDO NOVO ESCOPO\n");
+        printf("======================\n");
+        printf("Frame atual:\n");
+        printGlobalTableStack(100);
+    #endif
 }
 
 void popGlobalStack()
 {
-    // printf("DESEMPILHANDO NOVO ESCOPO\n");
-    // printf("=========================\n");
-    // printf("Frame desempilhado:\n");
-    // printGlobalTableStack(1);
+    #ifdef DEBUG
+        printf("DESEMPILHANDO NOVO ESCOPO\n");
+        printf("=========================\n");
+        printf("Frame desempilhado:\n");
+        printGlobalTableStack(100);
+    #endif
     
     freeSymbolTable(globalSymbolTableStack->symbolTable);
     globalSymbolTableStack = globalSymbolTableStack->nextItem;
-
 }
 
 // Copia os valores 
 void copySymbolsToGlobalStackBelow()
 {
-    if(globalSymbolTableStack->nextItem == NULL){
+    if (globalSymbolTableStack->nextItem == NULL)
+    {
         printf("Erro: tentando copiar símbolos para tabela abaixo, mas tabela atual é a global\n");
         exit(1);
     }
 
     int i;
-    for(i=0; i < N_SYMBOL_TABLE_BUCKETS; i++){
+    for (i=0; i < N_SYMBOL_TABLE_BUCKETS; i++)
+    {
         SymbolTableBucket* bucket = &globalSymbolTableStack->symbolTable->buckets[i];
         SymbolTableEntry* last = bucket->entries;
-
-        while(last != NULL){
-            addSymbolValueToTable(globalSymbolTableStack->nextItem->symbolTable, last->value);
+        while (last != NULL)
+        {
+            addSymbolValueToTable(globalSymbolTableStack->nextItem, last->value);
             last = last->next;
         }
     }
 }
 
-
-
-/*
-
-    Criação de uma nova pilha de tabela de símbolos
-
-*/
+// Criação de uma nova pilha de tabela de símbolos
 SymbolTableStack* createSymbolTableStack()
 {
     SymbolTableStack* tableStack = malloc(sizeof(SymbolTableStack));
-    if(!tableStack) return NULL;
+    if (!tableStack) return NULL;
 
     tableStack->symbolTable = NULL;
     tableStack->nextItem = NULL;
+
+    ///////////////////////// ETAPA 5 /////////////////////////
+    tableStack->isGlobal = 0;
+    tableStack->lastPosition = 0;
+
     return tableStack;
 }
-/*
 
-    Criação de uma nova tabela de símbolos
-
-*/
+// Criação de uma nova tabela de símbolos
 SymbolTable* createSymbolTable()
 {
     SymbolTable* table = malloc(sizeof(SymbolTable));
@@ -109,49 +112,53 @@ SymbolTable* createSymbolTable()
 
     table->n_buckets = N_SYMBOL_TABLE_BUCKETS;
     table->buckets = calloc(N_SYMBOL_TABLE_BUCKETS, sizeof(SymbolTableBucket));
+    table->lastPosition = 0;
     
     int i;
-    for(i=0; i<N_SYMBOL_TABLE_BUCKETS;i++){
+    for (i=0; i<N_SYMBOL_TABLE_BUCKETS;i++)
+    {
         table->buckets[i].n = i;
         table->buckets[i].entries = NULL;
     }
 
     return table;
 }
-/*
 
-    Criação de um valor de símbolo para a tabela de símbolos
-
-*/
-SymbolTableEntryValue createSymbolTableEntryValue(SymbolNature symbolNature, DataType dataType, LexicalValue lexicalValue){
+// Criação de um valor de símbolo para a tabela de símbolos
+SymbolTableEntryValue createSymbolTableEntryValue(SymbolNature symbolNature, DataType dataType, LexicalValue lexicalValue)
+{
     SymbolTableEntryValue value;
-
     value.lineNumber = lexicalValue.lineNumber;
     value.symbolNature = symbolNature;
     value.dataType = dataType;
     value.lexicalValue = lexicalValue;
-    // Copia a string
     value.lexicalValue.label = strdup(lexicalValue.label);
 
     return value;
 }
 
-void freeSymbolTableEntryValue(SymbolTableEntryValue value){
-    // Libera o valor léxico associado
+// Libera o valor léxico associado
+void freeSymbolTableEntryValue(SymbolTableEntryValue value)
+{
     freeLexicalValue(value.lexicalValue);
 }
 
-void freeSymbolTable(SymbolTable* table){
+void freeSymbolTable(SymbolTable* table)
+{
     int i;
     SymbolTableBucket* bucket;
     SymbolTableEntry* entry;
     SymbolTableEntry* nextEntry;
+
     // Percorre cada bucket e libera suas entradas
-    for(i=0; i < N_SYMBOL_TABLE_BUCKETS; i++){
+    for (i=0; i < N_SYMBOL_TABLE_BUCKETS; i++)
+    {
         bucket = &table->buckets[i];
         entry = bucket->entries;
+
         // Percorre entradas
-        while(entry != NULL){
+        while (entry != NULL)
+        {
             nextEntry = entry->next;
             free(entry->key);
             freeSymbolTableEntryValue(entry->value);
@@ -161,30 +168,26 @@ void freeSymbolTable(SymbolTable* table){
 
     }
     free(table->buckets);
-    // Libera tabela
-    free(table);
+    free(table); // Libera tabela
 }
 
-void freeSymbolTableStack(SymbolTableStack* stack){
+void freeSymbolTableStack(SymbolTableStack* stack)
+{
     SymbolTableStack* next;
-    do{
+
+    do
+    {
         next = stack->nextItem;
         freeSymbolTable(stack->symbolTable);
         stack = next;
-    }while(stack != NULL);
+    }
+    while(stack != NULL);
 
     free(stack);
 }
 
-
-
-
 //////////////////////////////////////////////////////////////
-
-
 //          OPERAÇÕES COM CHAVES E VALORES
-
-
 //////////////////////////////////////////////////////////////
 
 // Retorna uma entrada vazia
@@ -208,15 +211,14 @@ SymbolTableEntryValue getSymbolTableEntryValueByKey(SymbolTable* table, char* ke
 
     // Percorre os elementos do bucket até achar match ou o fim do bucket
     SymbolTableEntry* entry = bucket->entries;
-    while(entry != NULL){
-    
+    while (entry != NULL)
+    {
         if (isSameKey(entry, key))
         {
             // Match: retorna o valor da entrada
             return entry->value;
         }
         entry = entry->next;
-    
     }
 
     return getEmptySymbolTableEntryValue();
@@ -239,42 +241,51 @@ int isSameKey(SymbolTableEntry* entry, char* key)
     return strcmp(key, entry->key) == 0;
 }
 
-
 //////////////////////////////////////////////////////////////
-
-
 //          OPERAÇÕES COM A TABELA DE PILHAS
-
-
 //////////////////////////////////////////////////////////////
 
-void addSymbolValueToGlobalTableStack(SymbolTableEntryValue value){
-    addSymbolValueToTable(globalSymbolTableStack->symbolTable, value);
+void addSymbolValueToTableStack(SymbolTableStack* stack, SymbolTableEntryValue value)
+{
+    addSymbolValueToTable(stack, value);
 }
 
-void addSymbolValueToBelowGlobalTableStack(SymbolTableEntryValue value){
-    addSymbolValueToTable(globalSymbolTableStack->nextItem->symbolTable, value);
+void addSymbolValueToBelowTableStack(SymbolTableStack* stack, SymbolTableEntryValue value)
+{
+    // TODO: tlvz o erro esteja por aqui msm
+    // ERA KKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKK
+    addSymbolValueToTable(stack->nextItem, value);
 }
-
 
 // Adiciona um símbolo a uma tabela de símbolos
-void addSymbolValueToTable(SymbolTable* table, SymbolTableEntryValue value){
-
+void addSymbolValueToTable(SymbolTableStack* stack, SymbolTableEntryValue value)
+{
     // Se não for literal, checa se já foi declarado na tabela
-    if (value.symbolNature != SYMBOL_NATURE_LITERAL){
+    if (value.symbolNature != SYMBOL_NATURE_LITERAL)
         checkSymbolDeclared(value);
-    }
-    
-
-    ////////////////////////////
-    // CÁLCULO DA CHAVE
-    ////////////////////////////
-    char* key = strdup(value.lexicalValue.label);;
 
     ////////////////////////////
     // ADIÇÃO À HASH TABLE
     ////////////////////////////
     
+    ///////////////////////// ETAPA 5 /////////////////////////
+    SymbolTable* table = stack->symbolTable;
+
+    value.isGlobal = stack->isGlobal;
+    if (value.symbolNature == SYMBOL_NATURE_LITERAL || value.symbolNature == SYMBOL_NATURE_FUNCTION)
+    {
+        value.position = -1;
+    }
+    else
+    {
+        value.position = table->lastPosition;
+        table->lastPosition += 4;
+    }
+    stack->lastPosition = table->lastPosition;
+
+    // Cálculo da chave
+    char* key = strdup(value.lexicalValue.label);
+
     // Pega o índice do bucket
     size_t index = getIndex(table->n_buckets, key);
     SymbolTableBucket* bucket = &table->buckets[index];
@@ -285,58 +296,62 @@ void addSymbolValueToTable(SymbolTable* table, SymbolTableEntryValue value){
     new_entry->value = value;
     new_entry->next = NULL;
 
+
     // Se já existem elementos no bucket, adiciona ao fim da lista encadeada
-    if(bucket->entries != NULL){
+    if (bucket->entries != NULL)
+    {
         SymbolTableEntry* cur_entry = bucket->entries;
         SymbolTableEntry* last_entry;
 
         // Percorre lista encadeada até o fim
-        do{
+        do
+        {
             last_entry = cur_entry;
             cur_entry = cur_entry->next;
-        }while (cur_entry != NULL);
+        }
+        while (cur_entry != NULL);
 
         // Adiciona a nova entrada ao fim da lista
         last_entry->next = new_entry;
-
     }
-    else{
+    else
+    {
         bucket->entries = new_entry;
     }
-
 }
 
 // Verifica se a chave já existe em uma tabela dada
-int isKeyInTable(SymbolTable* table, char* key){
+int isKeyInTable(SymbolTable* table, char* key)
+{
     SymbolTableEntryValue value = getSymbolTableEntryValueByKey(table, key);
-    if (value.symbolNature == SYMBOL_NATURE_NON_EXISTENT){
+    if (value.symbolNature == SYMBOL_NATURE_NON_EXISTENT)
         return 0;
-    }
     return 1;
 }
 
-// Verifica se o símbolo já foi declarado nas tabelas da pilhas
-// (percorre do topo ao fim da pilha)
+// Verifica se o símbolo já foi declarado nas tabelas da pilhas (percorre do topo ao fim da pilha)
 void checkSymbolDeclared(SymbolTableEntryValue value){
-    
     char* key = value.lexicalValue.label;
     SymbolTableEntryValue found = getSymbolFromStackByKey(key);
-    if(found.symbolNature != SYMBOL_NATURE_NON_EXISTENT){
+    if (found.symbolNature != SYMBOL_NATURE_NON_EXISTENT)
+    {
         printf("Erro semântico:\n\t Símbolo \"%s\" (linha %d) foi previamente declarado (linha %d)\n", key, value.lineNumber, found.lineNumber);
         exit(ERR_DECLARED);
     }
 }
 
-SymbolTableEntryValue getSymbolFromStackByKey(char* key){
+SymbolTableEntryValue getSymbolFromStackByKey(char* key)
+{
     // Percorre a pilha
     SymbolTableStack* stackTop = globalSymbolTableStack;
     SymbolTableEntryValue value;
 
-    do{
+    do
+    {
         value = getSymbolTableEntryValueByKey(stackTop->symbolTable, key);
         stackTop = stackTop->nextItem;
-    
-    }while((stackTop != NULL) && (value.symbolNature == SYMBOL_NATURE_NON_EXISTENT));
+    }
+    while((stackTop != NULL) && (value.symbolNature == SYMBOL_NATURE_NON_EXISTENT));
 
     return value;
 }
@@ -353,130 +368,109 @@ SymbolTable* getTableFromStackWithMatchingKey(char* key){
     return stackTop->symbolTable;
 }
 
-
-
 //////////////////////////////////////////////////////////////
-
-
 //          UTILS
-
-
 //////////////////////////////////////////////////////////////
 
-void printGlobalTableStack(int depth){
+void printGlobalTableStack(int depth)
+{
     SymbolTableStack* stackTop = globalSymbolTableStack;
     SymbolTable* table;
 
     int i = depth;
     int j = 0;
 
-    do{
+    do
+    {
         printf("                FRAME %d\n", j);
         j++;
         int bucket_idx;
         SymbolTableEntry* entry;
         table = stackTop->symbolTable;
-        for(bucket_idx=0; bucket_idx < table->n_buckets; bucket_idx++){
+
+        for (bucket_idx=0; bucket_idx < table->n_buckets; bucket_idx++)
+        {
             entry = table->buckets[bucket_idx].entries;
-            while(entry != NULL){
+            while (entry != NULL)
+            {
                 char* key = entry->key;
                 SymbolTableEntryValue value = entry->value;
                 printf("Símbolo=%s ", key);
+
                 char* str_datatype;
-                switch(value.dataType){
+                switch (value.dataType)
+                {
                     case DATA_TYPE_INT: str_datatype = "int"; break;
                     case DATA_TYPE_FLOAT: str_datatype = "float"; break;
                     case DATA_TYPE_BOOL: str_datatype = "bool"; break;
                     default: str_datatype = "ERROR"; break;
                 }
                 printf("Tipo=%s ", str_datatype);
+
                 char* str_nature;
-                switch(value.symbolNature){
+                switch (value.symbolNature)
+                {
                     case SYMBOL_NATURE_LITERAL: str_datatype = "literal"; break;
                     case SYMBOL_NATURE_IDENTIFIER: str_datatype = "identifier"; break;
                     case SYMBOL_NATURE_FUNCTION: str_datatype = "function"; break;
                     default: "ERROR"; break;
                 }
+
                 printf("Natureza=%s ", str_datatype);
+
+                ///////////////////////// ETAPA 5 /////////////////////////
+                printf("Global=%d ", value.isGlobal);
+                printf("Position=%d", value.position);
+
                 printf("\n");
+
                 entry = entry->next;
             }
         }
         stackTop = stackTop->nextItem;
         i--;
-
-    }while((stackTop != NULL) && (i > 0));
+    }
+    while((stackTop != NULL) && (i > 0));
 
     printf("\n\n");
-
-
 }
 
-// Infere o tipo de um identificador. Assume que ele já está na tabela,
-// checando por erro de não-definição 
-DataType inferTypeFromIdentifier(LexicalValue identifier){
-
+// Infere o tipo de um identificador. Assume que ele já está na tabela, checando por erro de não-definição 
+DataType inferTypeFromIdentifier(LexicalValue identifier)
+{
     SymbolTableEntryValue value = getSymbolFromStackByKey(identifier.label);
-    if(value.symbolNature == SYMBOL_NATURE_NON_EXISTENT){
+    if(value.symbolNature == SYMBOL_NATURE_NON_EXISTENT)
+    {
         printf("Erro semântico: O identificador \"%s\" (linha %d) não foi declarado nesse escopo\n", 
-        identifier.label, identifier.lineNumber
+            identifier.label, identifier.lineNumber
         );
         exit(ERR_UNDECLARED);
     }
-
     return value.dataType;
-
 }
 
 // Checa se um identificador é variável, lançando erro se não
-void checkIdentifierIsVariable(LexicalValue identifier){
+void checkIdentifierIsVariable(LexicalValue identifier)
+{
     SymbolTableEntryValue value = getSymbolFromStackByKey(identifier.label);
-    if(value.symbolNature != SYMBOL_NATURE_IDENTIFIER){
+    if (value.symbolNature != SYMBOL_NATURE_IDENTIFIER)
+    {
         printf("Erro semântico: O identificador \"%s\" (linha %d) foi usado como variável, mas foi declarado como função (linha %d)\n", 
-        identifier.label, identifier.lineNumber, value.lineNumber
+            identifier.label, identifier.lineNumber, value.lineNumber
         );
         exit(ERR_FUNCTION);
     }
 }
 
 // Checa se um identificador é função, lançando erro se não
-void checkIdentifierIsFunction(LexicalValue identifier){
+void checkIdentifierIsFunction(LexicalValue identifier)
+{
     SymbolTableEntryValue value = getSymbolFromStackByKey(identifier.label);
-    if(value.symbolNature != SYMBOL_NATURE_FUNCTION){
+    if (value.symbolNature != SYMBOL_NATURE_FUNCTION)
+    {
         printf("Erro semântico: O identificador \"%s\" (linha %d) foi usado como função, mas foi declarado como variável (linha %d)\n", 
-        identifier.label, identifier.lineNumber, value.lineNumber
+            identifier.label, identifier.lineNumber, value.lineNumber
         );
         exit(ERR_FUNCTION);
     }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
