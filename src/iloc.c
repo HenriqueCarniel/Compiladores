@@ -75,21 +75,42 @@ void generateCodeByOperation(IlocOperation operation)
             break;
         case OP_MULT:
             printf("mult r%d, r%d => r%d \n", operation.op1, operation.op2, operation.out1);
+
+            printf("    movl    _temp_r_%d(%s), %s \n", operation.op1, "%rip", "%edx");
+            printf("    imull   _temp_r_%d(%s), %s \n", operation.op2, "%rip", "%eax");
+            printf("    movl    %s, _temp_r_%d(%s) \n", "%eax", operation.out1, "%rip");
             break;
         case OP_DIV:
             printf("div r%d, r%d => r%d \n", operation.op1, operation.op2, operation.out1);
+
+            printf("    movl    _temp_r_%d(%s), %s \n", operation.op1, "%rip", "%edx");
+            printf("    cltd \n");
+            printf("    idivl   _temp_r_%d(%s), %s \n", operation.op2, "%rip", "%eax");
+            printf("    movl    %s, _temp_r_%d(%s) \n", "%eax", operation.out1, "%rip");
             break;
         case OP_NEG:
             printf("rsubI r%d, 0 => r%d \n", operation.op1, operation.out1);
+
+            printf("    movl    _temp_r_%d(%s), %s \n", operation.op1, "%rip", "%edx");
+            printf("    negl    %s \n", "%eax");
+            printf("    movl    %s, _temp_r_%d(%s) \n", "%eax", operation.out1, "%rip");
             break;
         case OP_NEG_LOG:
             printf("xorI r%d, -1 => r%d \n", operation.op1, operation.out1);
             break;
         case OP_SUB:
             printf("sub r%d, r%d => r%d \n", operation.op1, operation.op2, operation.out1);
+
+            printf("    movl    _temp_r_%d(%s), %s \n", operation.op1, "%rip", "%edx");
+            printf("    subl    _temp_r_%d(%s), %s \n", operation.op2, "%rip", "%eax");
+            printf("    movl    %s, _temp_r_%d(%s) \n", "%eax", operation.out1, "%rip");
             break;
         case OP_ADD:
             printf("add r%d, r%d => r%d \n", operation.op1, operation.op2, operation.out1);
+
+            printf("    movl    _temp_r_%d(%s), %s \n", operation.op1, "%rip", "%edx");
+            printf("    addl    _temp_r_%d(%s), %s \n", operation.op2, "%rip", "%eax");
+            printf("    movl    %s, _temp_r_%d(%s) \n", "%eax", operation.out1, "%rip");
             break;
         case OP_AND:
             printf("and r%d, r%d => r%d \n", operation.op1, operation.op2, operation.out1);
