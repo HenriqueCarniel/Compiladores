@@ -311,3 +311,34 @@ void testOperationAndLists()
     printIlocOperationList(joinList);
     */
 }
+
+
+void generateAsm(IlocOperationList *operationList)
+{
+    #ifdef DEBUG
+    printf("GERANDO CÓDIGO ASSEMBLY\n");
+    #endif
+
+    // Gera o segmento de dados
+    #ifdef DEBUG
+    printf("Tabela global:\n");
+    printGlobalTableStack(1);
+    #endif
+    SymbolTable* globalsTable = globalSymbolTableStack->symbolTable;
+    // Não é necessário definir os valores iniciais
+    int bucket_idx;
+    SymbolTableEntry* entry;
+    for (bucket_idx=0; bucket_idx < globalsTable->n_buckets; bucket_idx++)
+    {
+        entry = globalsTable->buckets[bucket_idx].entries;
+        while (entry != NULL){
+            if(entry->value.symbolNature == SYMBOL_NATURE_IDENTIFIER){
+                //.comm name, size, alignment
+                printf(".comm %s,4,4\n",entry->key);
+            }
+            entry = entry->next;
+        }
+    }
+    
+
+}

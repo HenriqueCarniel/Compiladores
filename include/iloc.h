@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "types.h"
+#include "symbol_table.h"
 
 int generateLabel();
 int generateRegister();
@@ -21,5 +22,6 @@ IlocOperationList* joinOperationLists(IlocOperationList* operationList1, IlocOpe
 void printOperation(IlocOperation operation);
 void printIlocOperationList(IlocOperationList* operationList);
 void testOperationAndLists();
+void generateAsm(IlocOperationList* operationList);
 
 #endif

@@ -20,24 +20,27 @@ int main (int argc, char **argv)
 
   int ret = yyparse(); 
 
-  #ifdef DEBUG
-    printf("ESCOPO FINAL\n");
-    printf("======================\n");
-    printf("Frame atual:\n");
-    printGlobalTableStack(1);
+  // Gera código assembly a partir de código ILOC
+  generateAsm(arvore->operationList);
 
-    printf("GERANDO CÓDIGO INTEIRO\n");
-    if (arvore != NULL)
-    {
-      generateCode(arvore->operationList);
-    }
-  #endif
+  // #ifdef DEBUG
+  //   printf("ESCOPO FINAL\n");
+  //   printf("======================\n");
+  //   printf("Frame atual:\n");
+  //   printGlobalTableStack(1);
+
+  //   printf("GERANDO CÓDIGO INTEIRO\n");
+  //   if (arvore != NULL)
+  //   {
+  //     generateCode(arvore->operationList);
+  //   }
+  // #endif
   
-  // Código da função main
-  if (mainFunctionNode->operationList != NULL)
-  {
-    generateCode(mainFunctionNode->operationList);
-  }
+  // // Código da função main
+  // if (mainFunctionNode->operationList != NULL)
+  // {
+  //   generateCode(mainFunctionNode->operationList);
+  // }
 
   arvore = NULL;
   mainFunctionNode = NULL;
