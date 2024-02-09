@@ -72,7 +72,7 @@ void generateCodeByOperation(IlocOperation operation)
 
         case OP_NOP:
             printf("# nop \n");
-            printf("\tnop");
+            printf("\tnop\n");
             break;
         case OP_MULT:
             printf("# mult r%d, r%d => r%d \n", operation.op1, operation.op2, operation.out1);
@@ -142,6 +142,7 @@ void generateCodeByOperation(IlocOperation operation)
             break;
         case OP_LOADI:
             printf("# loadI %d => r%d \n", operation.op1, operation.out1);
+            printf("\tmovl $%d, _temp_r_%d(%s)\n", operation.op1, operation.out1, "%rip");
             break;
         case OP_LOADAI_GLOBAL:
             printf("# loadAI rbss, %d => r%d \n", operation.op1, operation.out1);
@@ -149,7 +150,9 @@ void generateCodeByOperation(IlocOperation operation)
             printf("\tmovl %s, _temp_r_%d(%s)\n"    , "%edx"            ,operation.out1    , "%rip");
             break;
         case OP_LOADAI_LOCAL:
-            printf("# loadAI rfp, %d => r%d \n", operation.op1, operation.out1);
+            printf("# loadAI rfp, %d => r%d \n"     , operation.op1     , operation.out1);
+            printf("\tmovl -%d(%s), %s\n"           , operation.op1     , "%rbp"            , "%edx");
+            printf("\tmovl %s, _temp_r_%d(%s)\n"    , "%edx"            ,operation.out1     , "%rip");
             break;
         case OP_STOREAI_GLOBAL:
             printf("# storeAI r%d => rbss, %d \n", operation.op1, operation.out1);
@@ -158,11 +161,14 @@ void generateCodeByOperation(IlocOperation operation)
             //printf("    movl %s(\%ri p), ");
             break;
         case OP_STOREAI_LOCAL:
-            printf("# storeAI r%d => rfp, %d \n", operation.op1, operation.out1 / 4);
+            printf("# storeAI r%d => rfp, %d \n", operation.op1, operation.out1);
+            printf("\tmovl _temp_r_%d(%s), %s\n"    , operation.op1     , "%rip"            , "%edx");
+            printf("\tmovl %s, -%d(%s)\n"            , "%edx"            , operation.out1   , "%rbp");
             break;
         case OP_RETURN:
-            printf("# Retorno da função main\n");
+            printf("# return r%d\n", operation.op1);
             printf("\tmovl _temp_r_%d(%s), %s\n", operation.op1, "%rip", "%eax");
+            printf("\tpopq %s\n", "%rbp");
             printf("\tret\n");
             break;
 
@@ -358,6 +364,8 @@ void generateAsm(IlocOperationList *operationList)
 
     // Adiciona info da main
     printf("\t.text\n\t.globl\tmain\n\t.type\tmain, @function\nmain:\n");
+    printf("\tpushq	%s\n", "%rbp");
+    printf("\tmovq %s, %s\n", "%rsp","%rbp");
 
     generateCode(operationList);
     
