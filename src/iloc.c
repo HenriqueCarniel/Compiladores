@@ -75,26 +75,30 @@ void generateCodeByOperation(IlocOperation operation)
             printf("\tnop\n");
             break;
         case OP_MULT:
-            printf("# mult r%d, r%d => r%d \n", operation.op1, operation.op2, operation.out1);
+            printf("# ----------------------------------------\t");
+            printf("OP_MULT:\tmult r%d, r%d => r%d \n", operation.op1, operation.op2, operation.out1);
             printf("    movl    _temp_r_%d(%s), %s \n", operation.op1, "%rip", "%edx");
             printf("    imull   _temp_r_%d(%s), %s \n", operation.op2, "%rip", "%eax");
             printf("    movl    %s, _temp_r_%d(%s) \n", "%eax", operation.out1, "%rip");
             break;
         case OP_DIV:
-            printf("# div r%d, r%d => r%d \n", operation.op1, operation.op2, operation.out1);
+            printf("# ----------------------------------------\t");
+            printf("OP_DIV:\tdiv r%d, r%d => r%d \n", operation.op1, operation.op2, operation.out1);
             printf("    movl    _temp_r_%d(%s), %s \n", operation.op1, "%rip", "%edx");
             printf("    cltd \n");
             printf("    idivl   _temp_r_%d(%s), %s \n", operation.op2, "%rip", "%eax");
             printf("    movl    %s, _temp_r_%d(%s) \n", "%eax", operation.out1, "%rip");
             break;
         case OP_NEG:
-            printf("# rsubI r%d, 0 => r%d \n", operation.op1, operation.out1);
+            printf("# ----------------------------------------\t");
+            printf("OP_NEG:\trsubI r%d, 0 => r%d \n", operation.op1, operation.out1);
             printf("    movl    _temp_r_%d(%s), %s \n", operation.op1, "%rip", "%eax");
             printf("    negl    %s \n", "%eax");
             printf("    movl    %s, _temp_r_%d(%s) \n", "%eax", operation.out1, "%rip");
             break;
         case OP_NEG_LOG:
-            printf("# xorI r%d, -1 => r%d \n", operation.op1, operation.out1);
+            printf("# ----------------------------------------\t");
+            printf("OP_NEG_LOG:\txorI r%d, -1 => r%d \n", operation.op1, operation.out1);
             printf("    movl    _temp_r_%d(%s), %s \n", operation.op1, "%rip", "%eax");
             printf("    test    %s, %s\n", "%eax", "%eax");
             printf("    movl    $0, %s\n", "%eax");
@@ -102,19 +106,22 @@ void generateCodeByOperation(IlocOperation operation)
             printf("    movl    %s, _temp_r_%d(%s)\n", "%eax", operation.out1, "%rip");
             break;
         case OP_SUB:
-            printf("# sub r%d, r%d => r%d \n", operation.op1, operation.op2, operation.out1);
+            printf("# ----------------------------------------\t");
+            printf("OP_SUB:\tsub r%d, r%d => r%d \n", operation.op1, operation.op2, operation.out1);
             printf("    movl    _temp_r_%d(%s), %s \n", operation.op1, "%rip", "%edx");
             printf("    subl    _temp_r_%d(%s), %s \n", operation.op2, "%rip", "%eax");
             printf("    movl    %s, _temp_r_%d(%s) \n", "%eax", operation.out1, "%rip");
             break;
         case OP_ADD:
-            printf("# add r%d, r%d => r%d \n", operation.op1, operation.op2, operation.out1);
+            printf("# ----------------------------------------\t");
+            printf("OP_ADD:\tadd r%d, r%d => r%d \n", operation.op1, operation.op2, operation.out1);
             printf("    movl    _temp_r_%d(%s), %s \n", operation.op1, "%rip", "%edx");
             printf("    addl    _temp_r_%d(%s), %s \n", operation.op2, "%rip", "%eax");
             printf("    movl    %s, _temp_r_%d(%s) \n", "%eax", operation.out1, "%rip");
             break;
         case OP_AND:
-            printf("# and r%d, r%d => r%d \n", operation.op1, operation.op2, operation.out1);
+            printf("# ----------------------------------------\t");
+            printf("OP_AND:\tand r%d, r%d => r%d \n", operation.op1, operation.op2, operation.out1);
             printf("    movl    _temp_r_%d(%s), %s \n", operation.op1, "%rip", "%eax");
             printf("    movl    _temp_r_%d(%s), %s \n", operation.op2, "%rip", "%edx");
             printf("    test    %s, %s\n", "%eax", "%edx");
@@ -123,7 +130,8 @@ void generateCodeByOperation(IlocOperation operation)
             printf("    movl    %s, _temp_r_%d(%s)\n", "%eax", operation.out1, "%rip");
             break;
         case OP_OR:
-            printf("# or r%d, r%d => r%d \n", operation.op1, operation.op2, operation.out1);
+            printf("# ----------------------------------------\t");
+            printf("OP_OR:\tor r%d, r%d => r%d \n", operation.op1, operation.op2, operation.out1);
             printf("    movl    _temp_r_%d(%s), %s \n", operation.op1, "%rip", "%eax");
             printf("    movl    _temp_r_%d(%s), %s \n", operation.op2, "%rip", "%edx");
             printf("    or      %s, %s\n", "%eax", "%edx");
@@ -132,57 +140,71 @@ void generateCodeByOperation(IlocOperation operation)
             printf("    movl    %s, _temp_r_%d(%s)\n", "%eax", operation.out1, "%rip");
             break;
         case OP_CMP_GE:
-            printf("# cmp_GE r%d, r%d -> r%d \n", operation.op1, operation.op2, operation.out1);
+            printf("# ----------------------------------------\t");
+            printf("OP_CMP_GE:\tcmp_GE r%d, r%d -> r%d \n", operation.op1, operation.op2, operation.out1);
             break;
         case OP_CMP_LE:
-            printf("# cmp_LE r%d, r%d -> r%d \n", operation.op1, operation.op2, operation.out1);
+            printf("# ----------------------------------------\t");
+            printf("OP_CMP_LE:\tcmp_LE r%d, r%d -> r%d \n", operation.op1, operation.op2, operation.out1);
             break;
         case OP_CMP_GT:
-            printf("# cmp_GT r%d, r%d -> r%d \n", operation.op1, operation.op2, operation.out1);
+            printf("# ----------------------------------------\t");
+            printf("OP_CMP_GT:\tcmp_GT r%d, r%d -> r%d \n", operation.op1, operation.op2, operation.out1);
             break;
         case OP_CMP_LT:
-            printf("# cmp_LT r%d, r%d -> r%d \n", operation.op1, operation.op2, operation.out1);
+            printf("# ----------------------------------------\t");
+            printf("OP_CMT_LT:\tcmp_LT r%d, r%d -> r%d \n", operation.op1, operation.op2, operation.out1);
             break;
         case OP_CMP_NE:
-            printf("# cmp_NE r%d, r%d -> r%d \n", operation.op1, operation.op2, operation.out1);
+            printf("# ----------------------------------------\t");
+            printf("OP_CMP_NE:\tcmp_NE r%d, r%d -> r%d \n", operation.op1, operation.op2, operation.out1);
             break;
         case OP_CMP_EQ:
-            printf("# cmp_EQ r%d, r%d -> r%d \n", operation.op1, operation.op2, operation.out1);
+            printf("# ----------------------------------------\t");
+            printf("OP_CMP_EQ:\tcmp_EQ r%d, r%d -> r%d \n", operation.op1, operation.op2, operation.out1);
             break;
         case OP_CBR:
-            printf("# cbr r%d -> l%d, l%d \n", operation.op1, operation.out1, operation.out2);
+            printf("# ----------------------------------------\t");
+            printf("OP_CBR:\tcbr r%d -> l%d, l%d \n", operation.op1, operation.out1, operation.out2);
             break;
         case OP_JUMPI:
-            printf("# jumpI -> l%d \n", operation.op1);
+            printf("# ----------------------------------------\t");
+            printf("OP_JUMPI:\tjumpI -> l%d \n", operation.op1);
             printf("\tjmp l%d\n", operation.op1);
             break;
         case OP_LOADI:
-            printf("# loadI %d => r%d \n", operation.op1, operation.out1);
+            printf("# ----------------------------------------\t");
+            printf("OP_LOADI:\tloadI %d => r%d \n", operation.op1, operation.out1);
             printf("\tmovl $%d, _temp_r_%d(%s)\n", operation.op1, operation.out1, "%rip");
             break;
         case OP_LOADAI_GLOBAL:
-            printf("# loadAI rbss, %d => r%d \n", operation.op1, operation.out1);
+            printf("# ----------------------------------------\t");
+            printf("OP_LOADAI_GLOBAL:\tloadAI rbss, %d => r%d \n", operation.op1, operation.out1);
             printf("\tmovl global%d(%s), %s\n"      , operation.op1/4   , "%rip"            , "%edx");
             printf("\tmovl %s, _temp_r_%d(%s)\n"    , "%edx"            ,operation.out1    , "%rip");
             break;
         case OP_LOADAI_LOCAL:
-            printf("# loadAI rfp, %d => r%d \n"     , operation.op1     , operation.out1);
+            printf("# ----------------------------------------\t");
+            printf("OP_LOADAI_LOCAL:\tloadAI rfp, %d => r%d \n"     , operation.op1     , operation.out1);
             printf("\tmovl -%d(%s), %s\n"           , operation.op1     , "%rbp"            , "%edx");
             printf("\tmovl %s, _temp_r_%d(%s)\n"    , "%edx"            ,operation.out1     , "%rip");
             break;
         case OP_STOREAI_GLOBAL:
-            printf("# storeAI r%d => rbss, %d \n", operation.op1, operation.out1);
+            printf("# ----------------------------------------\t");
+            printf("OP_STOREAI_GLOBAL:\tstoreAI r%d => rbss, %d \n", operation.op1, operation.out1);
             printf("\tmovl _temp_r_%d(%s), %s\n"    , operation.op1     , "%rip"            , "%edx");
             printf("\tmovl %s, global%d(%s)\n"      , "%edx"            , operation.out1 / 4, "%rip");
             //printf("    movl %s(\%ri p), ");
             break;
         case OP_STOREAI_LOCAL:
-            printf("# storeAI r%d => rfp, %d \n", operation.op1, operation.out1);
+            printf("# ----------------------------------------\t");
+            printf("OP_STOREAI_LOCAL:\tstoreAI r%d => rfp, %d \n", operation.op1, operation.out1);
             printf("\tmovl _temp_r_%d(%s), %s\n"    , operation.op1     , "%rip"            , "%edx");
             printf("\tmovl %s, -%d(%s)\n"            , "%edx"            , operation.out1   , "%rbp");
             break;
         case OP_RETURN:
-            printf("# return r%d\n", operation.op1);
+            printf("# ----------------------------------------\t");
+            printf("RETURN:\treturn r%d\n", operation.op1);
             printf("\tmovl _temp_r_%d(%s), %s\n", operation.op1, "%rip", "%eax");
             printf("\tpopq %s\n", "%rbp");
             printf("\tret\n");
