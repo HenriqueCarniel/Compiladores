@@ -141,7 +141,10 @@ typedef enum IlocOperationType
     OP_LOADAI_GLOBAL,
     OP_LOADAI_LOCAL,
     OP_STOREAI_GLOBAL,
-    OP_STOREAI_LOCAL
+    OP_STOREAI_LOCAL,
+    // Etapa 6: Operação de guardar valor de retorno da main
+    OP_RETURN
+
 } IlocOperationType;
 
 typedef struct IlocOperation

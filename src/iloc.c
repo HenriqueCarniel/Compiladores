@@ -160,6 +160,12 @@ void generateCodeByOperation(IlocOperation operation)
         case OP_STOREAI_LOCAL:
             printf("# storeAI r%d => rfp, %d \n", operation.op1, operation.out1 / 4);
             break;
+        case OP_RETURN:
+            printf("# Retorno da função main\n");
+            printf("\tmovl _temp_r_%d(%s), %s\n", operation.op1, "%rip", "%eax");
+            printf("\tret\n");
+            break;
+
         default:
             break;
     }

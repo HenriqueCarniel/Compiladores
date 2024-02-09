@@ -537,6 +537,19 @@ return_command: TK_PR_RETURN expression
 
     // RESPOSTA: Não precisa
     //$$->operationList = $2->operationList;
+
+    ///////////////////////// ETAPA 6 /////////////////////////
+    // Usamos uma operação especial para guardar o retorno (a única função chamada é a main)
+    IlocOperationList* operationList = createListFromOtherList($2->operationList);
+    int r1 = $2->outRegister;
+    
+    IlocOperation operation;
+    operation = generateOperation(OP_RETURN, r1, -1, -1, -1);
+    
+    addOperationToIlocList(operationList, operation);
+
+    $$->operationList = operationList;
+
 };
 
 
