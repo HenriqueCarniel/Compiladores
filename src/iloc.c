@@ -10,10 +10,10 @@ int generateLabel()
     return label_count++;
 }
 
+int n_generated_registers = 0;
 int generateRegister()
 {
-    static int register_count = 1;
-    return register_count++;
+    return n_generated_registers++;
 }
 
 IlocOperation generateEmptyOperation()
@@ -63,7 +63,7 @@ void generateCodeByOperation(IlocOperation operation)
 {
     if (operation.type != OP_INVALID && operation.label != -1)
     {
-        printf("l%d: ", operation.label);
+        printf("l%d:\n", operation.label);
     }
 
     switch (operation.type)
@@ -71,91 +71,94 @@ void generateCodeByOperation(IlocOperation operation)
         // TODO: terminar de implementar o resto das operações
 
         case OP_NOP:
-            printf("nop \n");
+            printf("# nop \n");
+            printf("\tnop");
             break;
         case OP_MULT:
-            printf("mult r%d, r%d => r%d \n", operation.op1, operation.op2, operation.out1);
-
+            printf("# mult r%d, r%d => r%d \n", operation.op1, operation.op2, operation.out1);
             printf("    movl    _temp_r_%d(%s), %s \n", operation.op1, "%rip", "%edx");
             printf("    imull   _temp_r_%d(%s), %s \n", operation.op2, "%rip", "%eax");
             printf("    movl    %s, _temp_r_%d(%s) \n", "%eax", operation.out1, "%rip");
             break;
         case OP_DIV:
-            printf("div r%d, r%d => r%d \n", operation.op1, operation.op2, operation.out1);
-
+            printf("# div r%d, r%d => r%d \n", operation.op1, operation.op2, operation.out1);
             printf("    movl    _temp_r_%d(%s), %s \n", operation.op1, "%rip", "%edx");
             printf("    cltd \n");
             printf("    idivl   _temp_r_%d(%s), %s \n", operation.op2, "%rip", "%eax");
             printf("    movl    %s, _temp_r_%d(%s) \n", "%eax", operation.out1, "%rip");
             break;
         case OP_NEG:
-            printf("rsubI r%d, 0 => r%d \n", operation.op1, operation.out1);
-
+            printf("# rsubI r%d, 0 => r%d \n", operation.op1, operation.out1);
             printf("    movl    _temp_r_%d(%s), %s \n", operation.op1, "%rip", "%edx");
             printf("    negl    %s \n", "%eax");
             printf("    movl    %s, _temp_r_%d(%s) \n", "%eax", operation.out1, "%rip");
             break;
         case OP_NEG_LOG:
-            printf("xorI r%d, -1 => r%d \n", operation.op1, operation.out1);
+            printf("# xorI r%d, -1 => r%d \n", operation.op1, operation.out1);
             break;
         case OP_SUB:
-            printf("sub r%d, r%d => r%d \n", operation.op1, operation.op2, operation.out1);
+            printf("# sub r%d, r%d => r%d \n", operation.op1, operation.op2, operation.out1);
 
             printf("    movl    _temp_r_%d(%s), %s \n", operation.op1, "%rip", "%edx");
             printf("    subl    _temp_r_%d(%s), %s \n", operation.op2, "%rip", "%eax");
             printf("    movl    %s, _temp_r_%d(%s) \n", "%eax", operation.out1, "%rip");
             break;
         case OP_ADD:
-            printf("add r%d, r%d => r%d \n", operation.op1, operation.op2, operation.out1);
+            printf("# add r%d, r%d => r%d \n", operation.op1, operation.op2, operation.out1);
 
             printf("    movl    _temp_r_%d(%s), %s \n", operation.op1, "%rip", "%edx");
             printf("    addl    _temp_r_%d(%s), %s \n", operation.op2, "%rip", "%eax");
             printf("    movl    %s, _temp_r_%d(%s) \n", "%eax", operation.out1, "%rip");
             break;
         case OP_AND:
-            printf("and r%d, r%d => r%d \n", operation.op1, operation.op2, operation.out1);
+            printf("# and r%d, r%d => r%d \n", operation.op1, operation.op2, operation.out1);
             break;
         case OP_OR:
-            printf("or r%d, r%d => r%d \n", operation.op1, operation.op2, operation.out1);
+            printf("# or r%d, r%d => r%d \n", operation.op1, operation.op2, operation.out1);
             break;
         case OP_CMP_GE:
-            printf("cmp_GE r%d, r%d -> r%d \n", operation.op1, operation.op2, operation.out1);
+            printf("# cmp_GE r%d, r%d -> r%d \n", operation.op1, operation.op2, operation.out1);
             break;
         case OP_CMP_LE:
-            printf("cmp_LE r%d, r%d -> r%d \n", operation.op1, operation.op2, operation.out1);
+            printf("# cmp_LE r%d, r%d -> r%d \n", operation.op1, operation.op2, operation.out1);
             break;
         case OP_CMP_GT:
-            printf("cmp_GT r%d, r%d -> r%d \n", operation.op1, operation.op2, operation.out1);
+            printf("# cmp_GT r%d, r%d -> r%d \n", operation.op1, operation.op2, operation.out1);
             break;
         case OP_CMP_LT:
-            printf("cmp_LT r%d, r%d -> r%d \n", operation.op1, operation.op2, operation.out1);
+            printf("# cmp_LT r%d, r%d -> r%d \n", operation.op1, operation.op2, operation.out1);
             break;
         case OP_CMP_NE:
-            printf("cmp_NE r%d, r%d -> r%d \n", operation.op1, operation.op2, operation.out1);
+            printf("# cmp_NE r%d, r%d -> r%d \n", operation.op1, operation.op2, operation.out1);
             break;
         case OP_CMP_EQ:
-            printf("cmp_EQ r%d, r%d -> r%d \n", operation.op1, operation.op2, operation.out1);
+            printf("# cmp_EQ r%d, r%d -> r%d \n", operation.op1, operation.op2, operation.out1);
             break;
         case OP_CBR:
-            printf("cbr r%d -> l%d, l%d \n", operation.op1, operation.out1, operation.out2);
+            printf("# cbr r%d -> l%d, l%d \n", operation.op1, operation.out1, operation.out2);
             break;
         case OP_JUMPI:
-            printf("jumpI -> l%d \n", operation.op1);
+            printf("# jumpI -> l%d \n", operation.op1);
             break;
         case OP_LOADI:
-            printf("loadI %d => r%d \n", operation.op1, operation.out1);
+            printf("# loadI %d => r%d \n", operation.op1, operation.out1);
             break;
         case OP_LOADAI_GLOBAL:
-            printf("loadAI rbss, %d => r%d \n", operation.op1, operation.out1);
+            printf("# loadAI rbss, %d => r%d \n", operation.op1, operation.out1);
+            printf("\tmovl global%d(%s), %s\n"      , operation.op1/4   , "%rip"            , "%edx");
+            printf("\tmovl %s, _temp_r_%d(%s)\n"    , "%edx"            ,operation.out1    , "%rip");
             break;
         case OP_LOADAI_LOCAL:
-            printf("loadAI rfp, %d => r%d \n", operation.op1, operation.out1);
+            printf("# loadAI rfp, %d => r%d \n", operation.op1, operation.out1);
             break;
         case OP_STOREAI_GLOBAL:
-            printf("storeAI r%d => rbss, %d \n", operation.op1, operation.out1);
+            printf("# storeAI r%d => rbss, %d \n", operation.op1, operation.out1);
+            printf("\tmovl _temp_r_%d(%s), %s\n"    , operation.op1     , "%rip"            , "%edx");
+            printf("\tmovl %s, global%d(%s)\n"      , "%edx"            , operation.out1 / 4, "%rip");
+            //printf("    movl %s(\%ri p), ");
             break;
         case OP_STOREAI_LOCAL:
-            printf("storeAI r%d => rfp, %d \n", operation.op1, operation.out1);
+            printf("# storeAI r%d => rfp, %d \n", operation.op1, operation.out1 / 4);
             break;
         default:
             break;
@@ -315,30 +318,42 @@ void testOperationAndLists()
 
 void generateAsm(IlocOperationList *operationList)
 {
-    #ifdef DEBUG
-    printf("GERANDO CÓDIGO ASSEMBLY\n");
-    #endif
-
-    // Gera o segmento de dados
-    #ifdef DEBUG
-    printf("Tabela global:\n");
-    printGlobalTableStack(1);
-    #endif
     SymbolTable* globalsTable = globalSymbolTableStack->symbolTable;
-    // Não é necessário definir os valores iniciais
+    // Define variáveis globais e os registradores usados pelo ILOC
     int bucket_idx;
     SymbolTableEntry* entry;
+    int i = 0;
+    printf(".data\n");
+    printf("# Variáveis globais\n");
     for (bucket_idx=0; bucket_idx < globalsTable->n_buckets; bucket_idx++)
     {
         entry = globalsTable->buckets[bucket_idx].entries;
         while (entry != NULL){
             if(entry->value.symbolNature == SYMBOL_NATURE_IDENTIFIER){
-                //.comm name, size, alignment
-                printf(".comm %s,4,4\n",entry->key);
+                printf( //".globl global%d\n"
+                        //"global%d:\n"
+                        "global%d:\t.long\t0\n", i);
+                i++;
             }
             entry = entry->next;
         }
     }
+    printf("# Registradores do ILOC\n");
+    for(int i = 0; i < n_generated_registers; i++){
+        printf( //".global _temp_r_%d\n"
+                //"_temp_r_%d:\n"
+                "_temp_r_%d:\t.long\t0\n", i);
+    }
+
+
+    printf( "# -------------------------\n"
+            "#  SEGMENTO DE CÓDIGO\n"
+            "# -------------------------\n");
+
+    // Adiciona info da main
+    printf("\t.text\n\t.globl\tmain\n\t.type\tmain, @function\nmain:\n");
+
+    generateCode(operationList);
     
 
 }

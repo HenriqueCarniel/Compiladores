@@ -21,7 +21,7 @@ int main (int argc, char **argv)
   int ret = yyparse(); 
 
   // Gera código assembly a partir de código ILOC
-  generateAsm(arvore->operationList);
+  generateAsm(mainFunctionNode->operationList);
 
   // #ifdef DEBUG
   //   printf("ESCOPO FINAL\n");

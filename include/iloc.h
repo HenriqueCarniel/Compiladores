@@ -6,6 +6,8 @@
 #include "types.h"
 #include "symbol_table.h"
 
+extern int n_generated_registers;
+
 int generateLabel();
 int generateRegister();
 IlocOperation generateEmptyOperation();
