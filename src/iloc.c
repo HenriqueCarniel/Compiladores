@@ -89,7 +89,7 @@ void generateCodeByOperation(IlocOperation operation)
             break;
         case OP_NEG:
             printf("# rsubI r%d, 0 => r%d \n", operation.op1, operation.out1);
-            printf("    movl    _temp_r_%d(%s), %s \n", operation.op1, "%rip", "%edx");
+            printf("    movl    _temp_r_%d(%s), %s \n", operation.op1, "%rip", "%eax");
             printf("    negl    %s \n", "%eax");
             printf("    movl    %s, _temp_r_%d(%s) \n", "%eax", operation.out1, "%rip");
             break;
@@ -105,7 +105,6 @@ void generateCodeByOperation(IlocOperation operation)
             break;
         case OP_ADD:
             printf("# add r%d, r%d => r%d \n", operation.op1, operation.op2, operation.out1);
-
             printf("    movl    _temp_r_%d(%s), %s \n", operation.op1, "%rip", "%edx");
             printf("    addl    _temp_r_%d(%s), %s \n", operation.op2, "%rip", "%eax");
             printf("    movl    %s, _temp_r_%d(%s) \n", "%eax", operation.out1, "%rip");
@@ -139,6 +138,7 @@ void generateCodeByOperation(IlocOperation operation)
             break;
         case OP_JUMPI:
             printf("# jumpI -> l%d \n", operation.op1);
+            printf("\tjmp l%d\n", operation.op1);
             break;
         case OP_LOADI:
             printf("# loadI %d => r%d \n", operation.op1, operation.out1);
