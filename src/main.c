@@ -2,6 +2,7 @@
 #include "types.h"
 #include "symbol_table.h"
 #include "iloc.h"
+#include "control_flow_graph.h"
 
 extern int yyparse(void);
 extern int yylex_destroy(void);
@@ -41,7 +42,7 @@ int main (int argc, char **argv)
 
   if (mainFunctionNode->operationList != NULL)
   {
-    generateFlowControlGraph(mainFunctionNode->operationList);
+    generateControlFlowGraph(mainFunctionNode->operationList);
   }
 
   arvore = NULL;
