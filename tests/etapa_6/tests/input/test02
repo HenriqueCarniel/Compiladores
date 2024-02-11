@@ -1,0 +1,10 @@
+int a;
+int b;
+int z;
+() >= int! main
+{
+  b = 4;
+  z = 9;
+  a = z + b;
+  return a;
+}

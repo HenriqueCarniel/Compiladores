@@ -1,0 +1,18 @@
+//Expressões booleanas por controle de fluxo
+() >= int! main
+{
+  int a;
+  int b;
+  int c;
+  int d;
+  int x;
+  a = 0;
+  b = 1;
+  c = 2;
+  d = 3;
+  x = 5;
+  if (a < b | c < d) {
+     x = 2;
+  };
+  return x;
+}

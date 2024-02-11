@@ -1,0 +1,12 @@
+int x;
+() >= int! f
+{
+  return 9;
+}
+
+() >= int! main
+{
+  //x = f();
+  x = 3 * 3;
+  return x;
+}

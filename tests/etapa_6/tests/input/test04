@@ -1,0 +1,10 @@
+() >= int! main
+{
+  int a;
+  int b;
+  b = 14;
+  a = b + 1;
+  b = a + 1;
+  a = a + b;
+  return a;
+}

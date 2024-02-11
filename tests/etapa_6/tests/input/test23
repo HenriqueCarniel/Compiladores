@@ -1,0 +1,10 @@
+() >= int! main
+{
+    int i;
+    while (i < 34)
+    {
+        i = i + 1;
+    };
+
+    return i;
+}

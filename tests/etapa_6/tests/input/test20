@@ -1,0 +1,17 @@
+//Os seguintes comandos de fluxo de controle: if sem else
+() >= int! main
+{
+  int a;
+  int b;
+  int c;
+  int z;
+  z = 2;
+  b = 4;
+  c = 9;
+  a = -4;
+  if (a > 0) {
+    c = 1;
+    b = z + c;
+  };
+  return b;
+}
