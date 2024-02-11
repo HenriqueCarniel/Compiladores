@@ -13,6 +13,7 @@ IlocOperation generateNopOperation();
 IlocOperation generateOperation(IlocOperationType type, int op1, int op2, int out1, int out2);
 IlocOperation addLabelToOperation(IlocOperation operation, int label);
 void generateCode(IlocOperationList* operationList);
+void generateFlowControlGraph(IlocOperationList* operationList);
 IlocOperationList* createIlocOperationList();
 IlocOperationList* createListFromOtherList(IlocOperationList* operationList);
 void addOperationToIlocList(IlocOperationList* operationList, IlocOperation operation);

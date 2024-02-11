@@ -1,0 +1,25 @@
+int c, d, e;
+
+() >= int! f
+{
+    d = 10;
+    e = d;
+    c = 2 * e;
+
+    return c;
+}
+
+() >= int! main
+{
+    int a;
+    int b;
+    a = 1;
+    b = 6;
+
+    while (a < b)
+    {
+        a = a + 1;
+    };
+
+    return a;
+}

@@ -39,6 +39,11 @@ int main (int argc, char **argv)
     generateCode(mainFunctionNode->operationList);
   }
 
+  if (mainFunctionNode->operationList != NULL)
+  {
+    generateFlowControlGraph(mainFunctionNode->operationList);
+  }
+
   arvore = NULL;
   mainFunctionNode = NULL;
   yylex_destroy();

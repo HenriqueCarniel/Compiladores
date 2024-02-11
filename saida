@@ -1,32 +1,63 @@
-loadI 10 => r1 
-storeAI r1 => rfp, 4 
-loadI 20 => r2 
-storeAI r2 => rfp, 0 
-loadI 0 => r13 
+loadI 1 => r7 
+storeAI r7 => rfp, 0 
+loadI 6 => r8 
+storeAI r8 => rfp, 4 
+loadI 0 => r16 
 l4: nop 
-loadAI rfp, 4 => r3 
-loadI 0 => r4 
-cmp_NE r3, r4 -> r5 
-cbr r5 -> l1, l2 
-l1: loadI 1 => r6 
+loadAI rfp, 0 => r9 
+loadAI rfp, 4 => r10 
+cmp_LT r9, r10 -> r11 
+cbr r11 -> l1, l2 
+l1: loadI 1 => r12 
 jumpI -> l3 
-l2: loadI 0 => r6 
+l2: loadI 0 => r12 
 l3: nop 
-cmp_NE r6, r13 -> r14 
-cbr r14 -> l5, l6 
+cmp_NE r12, r16 -> r17 
+cbr r17 -> l5, l6 
 l5: nop 
-loadAI rfp, 4 => r7 
-loadI 1 => r8 
-sub r7, r8 => r9 
-storeAI r9 => rfp, 4 
-loadAI rfp, 0 => r10 
-loadI 1 => r11 
-add r10, r11 => r12 
-storeAI r12 => rfp, 0 
+loadAI rfp, 0 => r13 
+loadI 1 => r14 
+add r13, r14 => r15 
+storeAI r15 => rfp, 0 
 jumpI -> l4 
 l6: nop 
-loadAI rfp, 4 => r15 
-loadAI rfp, 0 => r16 
-add r15, r16 => r17 
-storeAI r17 => rbss, 8 
-loadAI rbss, 8 => r18 
+
+
+============ lineLabelList============
+label: -1, line: -1 
+label: 4, line: 6 
+label: 1, line: 11 
+label: 2, line: 13 
+label: 3, line: 14 
+label: 5, line: 17 
+label: 6, line: 23 
+
+
+============ leaderLineInstructionList[lines] ============
+value: -1 
+value: 1 
+value: 11 
+value: 13 
+value: 17 
+value: 6 
+value: 23 
+
+
+============ unknownLabelList[labels] ============
+value: -1 
+value: 1 
+value: 2 
+value: 3 
+value: 5 
+value: 6 
+
+
+============ leaderLineInstructionList[lines] ============
+value: -1 
+value: 1 
+value: 11 
+value: 13 
+value: 17 
+value: 6 
+value: 23 
+value: 14 

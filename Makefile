@@ -30,7 +30,7 @@ _CFLAGS_DEBUG 			= -g -DDEBUG
 BISON_FLAGS				=
 _BISON_FLAGS_DEBUG 		= -d --report-file parser.output -W
 FLEX_FLAGS				= 
-PROGRAM_NAME 			= etapa5
+PROGRAM_NAME 			= etapa7
 
 ########################################
 #			REGRAS

@@ -160,4 +160,18 @@ typedef struct IlocOperationList
     struct IlocOperationList* nextOperationList;
 } IlocOperationList;
 
+///////////////////////// ETAPA 7 /////////////////////////
+typedef struct LineLabelList
+{
+    int label;
+    int line;
+    struct LineLabelList* nextLineLabel;
+} LineLabelList;
+
+typedef struct IntList
+{
+    int number;
+    struct IntList* nextNumber;
+} IntList;
+
 #endif
