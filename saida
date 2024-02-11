@@ -61,3 +61,28 @@ value: 17
 value: 6 
 value: 23 
 value: 14 
+
+
+============ leaderLineInstructionList[lines] quickSort ============
+value: 1 
+value: 6 
+value: 11 
+value: 13 
+value: 14 
+value: 17 
+value: 23 
+
+
+
+digraph G { 
+	start -> "1-5"; 
+	"1-5" -> "6-10"; 
+	"6-10" -> "11-12"; 
+	"6-10" -> "13"; 
+	"11-12" -> "14-16"; 
+	"13" -> "14-16"; 
+	"14-16" -> "17-22"; 
+	"14-16" -> "23"; 
+	"17-22" -> "6-10"; 
+	"23" -> end; 
+} 

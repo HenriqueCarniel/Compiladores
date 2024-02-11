@@ -1,5 +1,9 @@
 #include "control_flow_graph.h"
 
+// ===============================
+// INT LIST
+// ===============================
+
 IntList* createIntList()
 {
     IntList* intList = malloc(sizeof(IntList));
@@ -31,6 +35,40 @@ void addNumberToIntList(int number, IntList* intList)
 
     lastNumber->nextNumber = newIntList;
 }
+
+int sizeIntList(IntList* intList)
+{
+    if (!intList) return -1;
+
+    int size = 0;
+    IntList* currentNumber = intList;
+    while (currentNumber->nextNumber != NULL)
+    {
+        size++;
+        currentNumber = currentNumber->nextNumber;
+    }
+
+    return size;
+}
+
+void moveIntListToArray(IntList* intList, int array[])
+{
+    if (!intList) return;
+
+    int i = 0;
+    IntList* currentNumber = intList;
+
+    while (currentNumber->nextNumber != NULL)
+    {
+        array[i] = currentNumber->nextNumber->number;
+        currentNumber = currentNumber->nextNumber;
+        i++;
+    }
+}
+
+// ===============================
+// LINE LABEL LIST
+// ===============================
 
 LineLabelList* createLineLabelList()
 {
@@ -78,6 +116,10 @@ int searchLineLabel(int label, LineLabelList* lineLabelList)
     return -1;
 }
 
+// ===============================
+// TESTS
+// ===============================
+
 void printIntList(IntList* intList)
 {
     IntList* currentIntList = intList;
@@ -97,6 +139,46 @@ void printLineLabelList(LineLabelList* lineLabelList)
         currentLineLabelList = currentLineLabelList->nextLineLabel;
     }
 }
+
+// ===============================
+// ADDONS
+// ===============================
+
+void quickSort(int a[], int left, int right)
+{
+    int i, j, x, y;
+     
+    i = left;
+    j = right;
+    x = a[(left + right) / 2];
+     
+    while(i <= j) {
+        while(a[i] < x && i < right) {
+            i++;
+        }
+        while(a[j] > x && j > left) {
+            j--;
+        }
+        if(i <= j) {
+            y = a[i];
+            a[i] = a[j];
+            a[j] = y;
+            i++;
+            j--;
+        }
+    }
+     
+    if(j > left) {
+        quickSort(a, left, j);
+    }
+    if(i < right) {
+        quickSort(a, i, right);
+    }
+}
+
+// ===============================
+// CONTROL FLOW GRAPH
+// ===============================
 
 void generateControlFlowGraph(IlocOperationList* operationList)
 {
@@ -171,6 +253,7 @@ void generateControlFlowGraph(IlocOperationList* operationList)
 
         nextOperationList = nextOperationList->nextOperationList;
     }
+    LastIntructionLine = line - 1;
 
     // Printa lineLabelList
     printf("\n\n============ lineLabelList============\n");
@@ -196,4 +279,167 @@ void generateControlFlowGraph(IlocOperationList* operationList)
     // Printa leaderLineInstructionList
     printf("\n\n============ leaderLineInstructionList[lines] ============\n");
     printIntList(leaderLineInstructionList);
+
+    //////////////////// GERA ARRAY ORDENADO ////////////////////
+    int array_size = sizeIntList(leaderLineInstructionList);
+
+    int array[array_size];
+    moveIntListToArray(leaderLineInstructionList, array);
+
+    printf("\n\n============ leaderLineInstructionList[lines] quickSort ============\n");
+    quickSort(array, 0, array_size - 1);
+    for (int i = 0; i < array_size; i++)
+    {
+        printf("value: %d \n", array[i]);
+    }
+
+    //////////////////// GERA GRAFO ////////////////////
+
+    // int searchedLine = 9;
+    // IlocOperation searchedOperation = searchOperationByLine(operationList, searchedLine);
+    // printf("\n\nline %d: ", searchedLine);
+    // generateCodeByOperation(searchedOperation);
+
+    int lastIntructionFirst;
+    char* firstBlockString = NULL;
+
+    if (array_size == 1)
+    {
+        lastIntructionFirst = LastIntructionLine;
+    }
+    else
+    {
+        lastIntructionFirst = array[1] - 1;
+    }
+    firstBlockString = allocateBlockString(1, lastIntructionFirst);
+
+    printf("\n\n\ndigraph G { \n");
+    printf("\tstart -> %s; \n", firstBlockString);
+    free(firstBlockString);
+
+    for (int i = 0; i < array_size - 1; i++)
+    {
+        int currentLeaderInstruction = array[i];
+        int nextLeaderInstruction = array[i + 1];
+        char* startString = allocateBlockString(currentLeaderInstruction, nextLeaderInstruction - 1);
+        char* endString = NULL;
+
+        IlocOperation lastInstructionCurrentBlock = searchOperationByLine(operationList, nextLeaderInstruction - 1);
+        if (lastInstructionCurrentBlock.type == OP_CBR)
+        {
+            int targetLeaderInstruction = searchLineLabel(lastInstructionCurrentBlock.out1, lineLabelList);
+            int lastIntructionTarget = searchLastBlockIntruction(targetLeaderInstruction, array, array_size);
+            endString = allocateBlockString(targetLeaderInstruction, lastIntructionTarget);
+            printf("\t%s -> %s; \n", startString, endString);
+
+            free(endString);
+
+            targetLeaderInstruction = searchLineLabel(lastInstructionCurrentBlock.out2, lineLabelList);
+            lastIntructionTarget = searchLastBlockIntruction(targetLeaderInstruction, array, array_size);
+            endString = allocateBlockString(targetLeaderInstruction, lastIntructionTarget);
+            printf("\t%s -> %s; \n", startString, endString);
+        }
+        else if (lastInstructionCurrentBlock.type == OP_JUMPI)
+        {
+            int targetLeaderInstruction = searchLineLabel(lastInstructionCurrentBlock.op1, lineLabelList);
+            int lastIntructionTarget = searchLastBlockIntruction(targetLeaderInstruction, array, array_size);
+            endString = allocateBlockString(targetLeaderInstruction, lastIntructionTarget);
+            printf("\t%s -> %s; \n", startString, endString);
+        }
+        else
+        {
+            int targetLeaderInstruction = nextLeaderInstruction;
+            int lastIntructionTarget;
+
+            if (i < array_size - 2)
+                lastIntructionTarget = array[i + 2] - 1;
+            else
+                lastIntructionTarget = LastIntructionLine;
+
+            endString = allocateBlockString(targetLeaderInstruction, lastIntructionTarget);
+            printf("\t%s -> %s; \n", startString, endString);
+        }
+
+        free(startString);
+        free(endString);
+    }
+
+    int startInstructionLast;;
+    char* lastBlockString = NULL;
+
+    if (array_size == 1)
+    {
+        startInstructionLast = 1;
+    }
+    else
+    {
+        startInstructionLast = array[array_size - 1];
+    }
+    lastBlockString = allocateBlockString(startInstructionLast, LastIntructionLine);
+
+    printf("\t%s -> end; \n", lastBlockString);
+    printf("} \n");
+    
+    free(lastBlockString);
+}
+
+IlocOperation searchOperationByLine(IlocOperationList* operationList, int searchedLine)
+{
+    int line = 1;
+    IlocOperationList* nextOperationList = operationList;
+
+    while (line < searchedLine)
+    {
+        if (nextOperationList->operation.type != OP_INVALID)
+            line++;
+            
+        nextOperationList = nextOperationList->nextOperationList;
+    }
+
+    return nextOperationList->operation;
+}
+
+int searchLastBlockIntruction(int leaderInstruction, int orderedLeaderInstructions[], int size)
+{
+    for (int i = 0; i < size; i++)
+    {
+        if (leaderInstruction == orderedLeaderInstructions[i])
+        {
+            if (i != size - 1)
+                return orderedLeaderInstructions[i + 1] - 1;
+            else
+                return LastIntructionLine;
+        }
+    }
+
+    return -1;
+}
+
+char* allocateBlockString(int leaderInstruction, int lastInstruction)
+{
+    char *blockString;
+    int stringSize;
+
+    if (leaderInstruction - lastInstruction == 0)
+    {
+        stringSize = snprintf(NULL, 0, "\"%d\"", leaderInstruction);
+        if (stringSize < 0) return NULL;
+
+        blockString = malloc(stringSize + 1);
+        if (blockString == NULL) return NULL;
+
+        snprintf(blockString, stringSize + 1, "\"%d\"", leaderInstruction);
+    }
+    else
+    {
+        stringSize = snprintf(NULL, 0, "\"%d-%d\"", leaderInstruction, lastInstruction);
+        if (stringSize < 0) return NULL;
+
+        blockString = malloc(stringSize + 1);
+        if (blockString == NULL) return NULL;
+
+        snprintf(blockString, stringSize + 1, "\"%d-%d\"", leaderInstruction, lastInstruction);
+    }
+
+    return blockString;
 }
