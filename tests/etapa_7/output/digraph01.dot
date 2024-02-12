@@ -1,0 +1,14 @@
+# ============== ILOC CODE ============== 
+# 1: loadI 2 => r1 
+# 2: loadI 2 => r2 
+# 3: div r1, r2 => r3 
+# 4: loadI 4 => r4 
+# 5: mult r3, r4 => r5 
+# 6: loadI 5 => r6 
+# 7: add r5, r6 => r7 
+# 8: storeAI r7 => rfp, 0 
+
+digraph G { 
+	start -> "1-8"; 
+	"1-8" -> end; 
+} 

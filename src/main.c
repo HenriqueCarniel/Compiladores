@@ -34,11 +34,10 @@ int main (int argc, char **argv)
     }
   #endif
   
-  // Código da função main
-  if (mainFunctionNode->operationList != NULL)
-  {
-    generateCode(mainFunctionNode->operationList);
-  }
+  // if (mainFunctionNode->operationList != NULL)
+  // {
+  //   generateCode(mainFunctionNode->operationList);
+  // }
 
   if (mainFunctionNode->operationList != NULL)
   {

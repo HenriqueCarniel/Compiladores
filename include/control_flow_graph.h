@@ -17,7 +17,7 @@ void addLabelAndLineToLabelList(int label, int line, LineLabelList* lineLabelLis
 int searchLineLabel(int label, LineLabelList* lineLabelList);
 void printIntList(IntList* intList);
 void printLineLabelList(LineLabelList* lineLabelList);
-void quickSort(int a[], int left, int right);
+void quickSort(int array[], int left, int right);
 
 void addTargetInstructionToLeaderList(int targetLabel, LineLabelList* lineLabelList, IntList* leaderLineInstructionList, IntList* unknownLabelList);
 void updateStructsToGenerateGraph(IlocOperationList* operationList, LineLabelList* lineLabelList, IntList* unknownLabelList, IntList* leaderLineInstructionList);

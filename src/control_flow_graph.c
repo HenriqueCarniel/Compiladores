@@ -144,36 +144,34 @@ void printLineLabelList(LineLabelList* lineLabelList)
 // ADDONS
 // ===============================
 
-void quickSort(int a[], int left, int right)
+void quickSort(int array[], int left, int right)
 {
     int i, j, x, y;
      
     i = left;
     j = right;
-    x = a[(left + right) / 2];
+    x = array[(left + right) / 2];
      
-    while(i <= j) {
-        while(a[i] < x && i < right) {
+    while(i <= j)
+    {
+        while(array[i] < x && i < right) i++;
+        while(array[j] > x && j > left) j--;
+
+        if(i <= j)
+        {
+            y = array[i];
+            array[i] = array[j];
+            array[j] = y;
             i++;
-        }
-        while(a[j] > x && j > left) {
             j--;
         }
-        if(i <= j) {
-            y = a[i];
-            a[i] = a[j];
-            a[j] = y;
-            i++;
-            j--;
-        }
     }
      
-    if(j > left) {
-        quickSort(a, left, j);
-    }
-    if(i < right) {
-        quickSort(a, i, right);
-    }
+    if(j > left)
+        quickSort(array, left, j);
+
+    if(i < right)
+        quickSort(array, i, right);
 }
 
 // ===============================
@@ -248,29 +246,9 @@ void updateStructsToGenerateGraph(IlocOperationList* operationList, LineLabelLis
 
         nextOperationList = nextOperationList->nextOperationList;
     }
+
     LastIntructionLine = line - 1;
-    
-    // ===================================== APAGAR DEPOIS =====================================
-    // Printa lineLabelList
-    printf("\n\n============ lineLabelList============\n");
-    printLineLabelList(lineLabelList);
-
-    // Printa leaderLineInstructionList
-    printf("\n\n============ leaderLineInstructionList[lines] ============\n");
-    printIntList(leaderLineInstructionList);
-
-    // Printa unknownLabelList
-    printf("\n\n============ unknownLabelList[labels] ============\n");
-    printIntList(unknownLabelList);
-    // ========================================================================================
-
     updateLeaderIntructionsWithUnknownLineLabels(leaderLineInstructionList, unknownLabelList, lineLabelList);
-
-    // ===================================== APAGAR DEPOIS =====================================
-    // Printa leaderLineInstructionList
-    printf("\n\n============ leaderLineInstructionList[lines] ============\n");
-    printIntList(leaderLineInstructionList);
-    // ========================================================================================
 }
 
 void generateControlFlowGraph(IlocOperationList* operationList)
@@ -285,14 +263,6 @@ void generateControlFlowGraph(IlocOperationList* operationList)
     int orderedLeaderInstructionArray[array_size];
     moveIntListToArray(leaderLineInstructionList, orderedLeaderInstructionArray);
     quickSort(orderedLeaderInstructionArray, 0, array_size - 1);
-
-    // ===================================== APAGAR DEPOIS =====================================
-    printf("\n\n============ leaderLineInstructionList[lines] quickSort ============\n");
-    for (int i = 0; i < array_size; i++)
-    {
-        printf("value: %d \n", orderedLeaderInstructionArray[i]);
-    }
-    // ========================================================================================
 
     printCommentedCode(operationList);
     printStartGraph(orderedLeaderInstructionArray, array_size);
@@ -355,7 +325,7 @@ void printBlockInstruction(int targetLeaderInstruction, char* startString, char*
 
 void printCommentedCode(IlocOperationList* operationList)
 {
-    printf("\n\n# ============== ILOC CODE ============== \n");
+    printf("# ============== ILOC CODE ============== \n");
 
     IlocOperationList* nextOperationList = operationList;
     int line = 1;

@@ -1,0 +1,23 @@
+int c, d, e;
+
+() >= int! main
+{
+    int a;
+    int b;
+    a = 1;
+    b = 6;
+
+    if (7 * a > b)
+    {
+        while (a < b)
+        {
+            a = a + 1;
+        };
+    }
+    else
+    {
+        a = a * 10;
+    };
+
+    return a;
+}
