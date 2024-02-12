@@ -180,13 +180,43 @@ void quickSort(int a[], int left, int right)
 // CONTROL FLOW GRAPH
 // ===============================
 
-void generateControlFlowGraph(IlocOperationList* operationList)
+void addTargetInstructionToLeaderList(int targetLabel, LineLabelList* lineLabelList, IntList* leaderLineInstructionList, IntList* unknownLabelList)
+{
+    int result = searchLineLabel(targetLabel, lineLabelList);
+            
+    if (result == -1)
+    {
+        addNumberToIntList(targetLabel, unknownLabelList);
+    }
+    else
+    {
+        addNumberToIntList(result, leaderLineInstructionList);
+    }
+}
+
+void addNextInstructionToLeaderList(IlocOperationList* operationList, int line, IntList* leaderLineInstructionList)
+{
+    if (operationList->nextOperationList)
+    {
+        addNumberToIntList(line + 1, leaderLineInstructionList);
+    }
+}
+
+void updateLeaderIntructionsWithUnknownLineLabels(IntList* leaderLineInstructionList, IntList* unknownLabelList, LineLabelList* lineLabelList)
+{
+    IntList* currentLabel = unknownLabelList->nextNumber;
+    while (currentLabel)
+    {
+        int lineLabel = searchLineLabel(currentLabel->number, lineLabelList);
+        addNumberToIntList(lineLabel, leaderLineInstructionList);
+
+        currentLabel = currentLabel->nextNumber;
+    }
+}
+
+void updateStructsToGenerateGraph(IlocOperationList* operationList, LineLabelList* lineLabelList, IntList* unknownLabelList, IntList* leaderLineInstructionList)
 {
     IlocOperationList* nextOperationList = operationList;
-
-    LineLabelList* lineLabelList = createLineLabelList();
-    IntList* leaderLineInstructionList = createIntList();
-    IntList* unknownLabelList = createIntList();
 
     addNumberToIntList(1, leaderLineInstructionList);
 
@@ -202,50 +232,15 @@ void generateControlFlowGraph(IlocOperationList* operationList)
 
         if (operation.type == OP_JUMPI)
         {
-            int result = searchLineLabel(operation.op1, lineLabelList);
-            
-            if (result == -1)
-            {
-                addNumberToIntList(operation.op1, unknownLabelList);
-            }
-            else
-            {
-                addNumberToIntList(result, leaderLineInstructionList);
-            }
-
-            if (nextOperationList->nextOperationList)
-            {
-                addNumberToIntList(line + 1, leaderLineInstructionList);
-            }
+            addTargetInstructionToLeaderList(operation.op1, lineLabelList, leaderLineInstructionList, unknownLabelList);
+            addNextInstructionToLeaderList(nextOperationList, line, leaderLineInstructionList);
         }
 
         if (operation.type == OP_CBR)
         {
-            int result1 = searchLineLabel(operation.out1, lineLabelList);
-            int result2 = searchLineLabel(operation.out1, lineLabelList);
-            
-            if (result1 == -1)
-            {
-                addNumberToIntList(operation.out1, unknownLabelList);
-            }
-            else
-            {
-                addNumberToIntList(result1, leaderLineInstructionList);
-            }
-
-            if (result2 == -1)
-            {
-                addNumberToIntList(operation.out2, unknownLabelList);
-            }
-            else
-            {
-                addNumberToIntList(result2, leaderLineInstructionList);
-            }
-
-            if (nextOperationList->nextOperationList)
-            {
-                addNumberToIntList(line + 1, leaderLineInstructionList);
-            }
+            addTargetInstructionToLeaderList(operation.out1, lineLabelList, leaderLineInstructionList, unknownLabelList);
+            addTargetInstructionToLeaderList(operation.out2, lineLabelList, leaderLineInstructionList, unknownLabelList);
+            addNextInstructionToLeaderList(nextOperationList, line, leaderLineInstructionList);
         }
 
         if (operation.type != OP_INVALID)
@@ -254,7 +249,8 @@ void generateControlFlowGraph(IlocOperationList* operationList)
         nextOperationList = nextOperationList->nextOperationList;
     }
     LastIntructionLine = line - 1;
-
+    
+    // ===================================== APAGAR DEPOIS =====================================
     // Printa lineLabelList
     printf("\n\n============ lineLabelList============\n");
     printLineLabelList(lineLabelList);
@@ -266,137 +262,42 @@ void generateControlFlowGraph(IlocOperationList* operationList)
     // Printa unknownLabelList
     printf("\n\n============ unknownLabelList[labels] ============\n");
     printIntList(unknownLabelList);
+    // ========================================================================================
 
-    IntList* currentLabel = unknownLabelList->nextNumber;
-    while (currentLabel)
-    {
-        int lineLabel = searchLineLabel(currentLabel->number, lineLabelList);
-        addNumberToIntList(lineLabel, leaderLineInstructionList);
+    updateLeaderIntructionsWithUnknownLineLabels(leaderLineInstructionList, unknownLabelList, lineLabelList);
 
-        currentLabel = currentLabel->nextNumber;
-    }
-
+    // ===================================== APAGAR DEPOIS =====================================
     // Printa leaderLineInstructionList
     printf("\n\n============ leaderLineInstructionList[lines] ============\n");
     printIntList(leaderLineInstructionList);
-
-    //////////////////// GERA ARRAY ORDENADO ////////////////////
-    int array_size = sizeIntList(leaderLineInstructionList);
-
-    int array[array_size];
-    moveIntListToArray(leaderLineInstructionList, array);
-
-    printf("\n\n============ leaderLineInstructionList[lines] quickSort ============\n");
-    quickSort(array, 0, array_size - 1);
-    for (int i = 0; i < array_size; i++)
-    {
-        printf("value: %d \n", array[i]);
-    }
-
-    //////////////////// GERA GRAFO ////////////////////
-
-    // int searchedLine = 9;
-    // IlocOperation searchedOperation = searchOperationByLine(operationList, searchedLine);
-    // printf("\n\nline %d: ", searchedLine);
-    // generateCodeByOperation(searchedOperation);
-
-    int lastIntructionFirst;
-    char* firstBlockString = NULL;
-
-    if (array_size == 1)
-    {
-        lastIntructionFirst = LastIntructionLine;
-    }
-    else
-    {
-        lastIntructionFirst = array[1] - 1;
-    }
-    firstBlockString = allocateBlockString(1, lastIntructionFirst);
-
-    printf("\n\n\ndigraph G { \n");
-    printf("\tstart -> %s; \n", firstBlockString);
-    free(firstBlockString);
-
-    for (int i = 0; i < array_size - 1; i++)
-    {
-        int currentLeaderInstruction = array[i];
-        int nextLeaderInstruction = array[i + 1];
-        char* startString = allocateBlockString(currentLeaderInstruction, nextLeaderInstruction - 1);
-        char* endString = NULL;
-
-        IlocOperation lastInstructionCurrentBlock = searchOperationByLine(operationList, nextLeaderInstruction - 1);
-        if (lastInstructionCurrentBlock.type == OP_CBR)
-        {
-            int targetLeaderInstruction = searchLineLabel(lastInstructionCurrentBlock.out1, lineLabelList);
-            int lastIntructionTarget = searchLastBlockIntruction(targetLeaderInstruction, array, array_size);
-            endString = allocateBlockString(targetLeaderInstruction, lastIntructionTarget);
-            printf("\t%s -> %s; \n", startString, endString);
-
-            free(endString);
-
-            targetLeaderInstruction = searchLineLabel(lastInstructionCurrentBlock.out2, lineLabelList);
-            lastIntructionTarget = searchLastBlockIntruction(targetLeaderInstruction, array, array_size);
-            endString = allocateBlockString(targetLeaderInstruction, lastIntructionTarget);
-            printf("\t%s -> %s; \n", startString, endString);
-        }
-        else if (lastInstructionCurrentBlock.type == OP_JUMPI)
-        {
-            int targetLeaderInstruction = searchLineLabel(lastInstructionCurrentBlock.op1, lineLabelList);
-            int lastIntructionTarget = searchLastBlockIntruction(targetLeaderInstruction, array, array_size);
-            endString = allocateBlockString(targetLeaderInstruction, lastIntructionTarget);
-            printf("\t%s -> %s; \n", startString, endString);
-        }
-        else
-        {
-            int targetLeaderInstruction = nextLeaderInstruction;
-            int lastIntructionTarget;
-
-            if (i < array_size - 2)
-                lastIntructionTarget = array[i + 2] - 1;
-            else
-                lastIntructionTarget = LastIntructionLine;
-
-            endString = allocateBlockString(targetLeaderInstruction, lastIntructionTarget);
-            printf("\t%s -> %s; \n", startString, endString);
-        }
-
-        free(startString);
-        free(endString);
-    }
-
-    int startInstructionLast;;
-    char* lastBlockString = NULL;
-
-    if (array_size == 1)
-    {
-        startInstructionLast = 1;
-    }
-    else
-    {
-        startInstructionLast = array[array_size - 1];
-    }
-    lastBlockString = allocateBlockString(startInstructionLast, LastIntructionLine);
-
-    printf("\t%s -> end; \n", lastBlockString);
-    printf("} \n");
-    
-    free(lastBlockString);
+    // ========================================================================================
 }
 
-IlocOperation searchOperationByLine(IlocOperationList* operationList, int searchedLine)
+void generateControlFlowGraph(IlocOperationList* operationList)
 {
-    int line = 1;
-    IlocOperationList* nextOperationList = operationList;
+    LineLabelList* lineLabelList = createLineLabelList();
+    IntList* leaderLineInstructionList = createIntList();
+    IntList* unknownLabelList = createIntList();
 
-    while (line < searchedLine)
+    updateStructsToGenerateGraph(operationList, lineLabelList, unknownLabelList, leaderLineInstructionList);
+
+    int array_size = sizeIntList(leaderLineInstructionList);
+    int orderedLeaderInstructionArray[array_size];
+    moveIntListToArray(leaderLineInstructionList, orderedLeaderInstructionArray);
+    quickSort(orderedLeaderInstructionArray, 0, array_size - 1);
+
+    // ===================================== APAGAR DEPOIS =====================================
+    printf("\n\n============ leaderLineInstructionList[lines] quickSort ============\n");
+    for (int i = 0; i < array_size; i++)
     {
-        if (nextOperationList->operation.type != OP_INVALID)
-            line++;
-            
-        nextOperationList = nextOperationList->nextOperationList;
+        printf("value: %d \n", orderedLeaderInstructionArray[i]);
     }
+    // ========================================================================================
 
-    return nextOperationList->operation;
+    printCommentedCode(operationList);
+    printStartGraph(orderedLeaderInstructionArray, array_size);
+    printMiddleGraph(orderedLeaderInstructionArray, array_size, operationList, lineLabelList);
+    printEndGraph(orderedLeaderInstructionArray, array_size);
 }
 
 int searchLastBlockIntruction(int leaderInstruction, int orderedLeaderInstructions[], int size)
@@ -442,4 +343,103 @@ char* allocateBlockString(int leaderInstruction, int lastInstruction)
     }
 
     return blockString;
+}
+
+void printBlockInstruction(int targetLeaderInstruction, char* startString, char* endString, int orderedLeaderInstructionArray[], int array_size)
+{
+    int lastIntructionTarget = searchLastBlockIntruction(targetLeaderInstruction, orderedLeaderInstructionArray, array_size);
+    endString = allocateBlockString(targetLeaderInstruction, lastIntructionTarget);
+    printf("\t%s -> %s; \n", startString, endString);
+    free(endString);
+}
+
+void printCommentedCode(IlocOperationList* operationList)
+{
+    printf("\n\n# ============== ILOC CODE ============== \n");
+
+    IlocOperationList* nextOperationList = operationList;
+    int line = 1;
+
+    while(nextOperationList != NULL)
+    {
+        IlocOperation operation = nextOperationList->operation;
+
+        if (operation.type != OP_INVALID)
+        {
+            printf("# %d: ", line);
+            generateCodeByOperation(operation);
+            line++;
+        }
+
+        nextOperationList = nextOperationList->nextOperationList;
+    }
+
+    printf("\n");
+}
+
+void printStartGraph(int orderedLeaderInstructionArray[], int array_size)
+{
+    int lastIntructionFirst;
+    char* firstBlockString = NULL;
+
+    if (array_size == 1)
+    {
+        lastIntructionFirst = LastIntructionLine;
+    }
+    else
+    {
+        lastIntructionFirst = orderedLeaderInstructionArray[1] - 1;
+    }
+    firstBlockString = allocateBlockString(1, lastIntructionFirst);
+
+    printf("digraph G { \n");
+    printf("\tstart -> %s; \n", firstBlockString);
+    free(firstBlockString);
+}
+
+void printMiddleGraph(int orderedLeaderInstructionArray[], int array_size, IlocOperationList* operationList, LineLabelList* lineLabelList)
+{
+    for (int i = 0; i < array_size - 1; i++)
+    {
+        int currentLeaderInstruction = orderedLeaderInstructionArray[i];
+        int nextLeaderInstruction = orderedLeaderInstructionArray[i + 1];
+        char* startString = allocateBlockString(currentLeaderInstruction, nextLeaderInstruction - 1);
+        char* endString = NULL;
+
+        IlocOperation lastInstructionCurrentBlock = searchOperationByLine(operationList, nextLeaderInstruction - 1);
+        if (lastInstructionCurrentBlock.type == OP_CBR)
+        {
+            int targetLeaderInstruction = searchLineLabel(lastInstructionCurrentBlock.out1, lineLabelList);
+            printBlockInstruction(targetLeaderInstruction, startString, endString, orderedLeaderInstructionArray, array_size);
+
+            targetLeaderInstruction = searchLineLabel(lastInstructionCurrentBlock.out2, lineLabelList);
+            printBlockInstruction(targetLeaderInstruction, startString, endString, orderedLeaderInstructionArray, array_size);
+        }
+        else if (lastInstructionCurrentBlock.type == OP_JUMPI)
+        {
+            int targetLeaderInstruction = searchLineLabel(lastInstructionCurrentBlock.op1, lineLabelList);
+            printBlockInstruction(targetLeaderInstruction, startString, endString, orderedLeaderInstructionArray, array_size);
+        }
+        else
+        {
+            int targetLeaderInstruction = nextLeaderInstruction;
+            printBlockInstruction(targetLeaderInstruction, startString, endString, orderedLeaderInstructionArray, array_size);
+        }
+
+        free(startString);
+    }
+}
+
+void printEndGraph(int orderedLeaderInstructionArray[], int array_size)
+{
+    int startInstructionLast;
+    char* lastBlockString = NULL;
+
+    startInstructionLast = orderedLeaderInstructionArray[array_size - 1];
+    lastBlockString = allocateBlockString(startInstructionLast, LastIntructionLine);
+
+    printf("\t%s -> end; \n", lastBlockString);
+    printf("} \n");
+    
+    free(lastBlockString);
 }

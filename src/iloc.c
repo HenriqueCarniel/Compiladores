@@ -68,8 +68,6 @@ void generateCodeByOperation(IlocOperation operation)
 
     switch (operation.type)
     {
-        // TODO: terminar de implementar o resto das operações
-
         case OP_NOP:
             printf("nop \n");
             break;
@@ -217,6 +215,22 @@ IlocOperationList* joinOperationLists(IlocOperationList* operationList1, IlocOpe
     addIlocListToIlocList(newOperationList, operationList2);
 
     return newOperationList;
+}
+
+IlocOperation searchOperationByLine(IlocOperationList* operationList, int searchedLine)
+{
+    int line = 1;
+    IlocOperationList* nextOperationList = operationList;
+
+    while (line < searchedLine)
+    {
+        if (nextOperationList->operation.type != OP_INVALID)
+            line++;
+            
+        nextOperationList = nextOperationList->nextOperationList;
+    }
+
+    return nextOperationList->operation;
 }
 
 void printOperation(IlocOperation operation)
